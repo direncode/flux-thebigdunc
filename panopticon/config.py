@@ -139,3 +139,38 @@ class EthicsConfig:
         "No individuals are tracked. Only aggregate observables.\n"
         "Session auto-wipes in {timeout} minutes."
     )
+
+
+# ---------------------------------------------------------------------------
+# Map tile configuration (free, no API key required)
+# ---------------------------------------------------------------------------
+
+ESRI_SATELLITE_TILE_URL = (
+    "https://server.arcgisonline.com/ArcGIS/rest/services/"
+    "World_Imagery/MapServer/tile/{z}/{y}/{x}"
+)
+ESRI_SATELLITE_ATTRIBUTION = (
+    "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, "
+    "GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGS, GIS User Community"
+)
+
+CARTO_DARK_TILE_URL = (
+    "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+)
+CARTO_DARK_ATTRIBUTION = "&copy; OpenStreetMap contributors &copy; CARTO"
+
+
+# ---------------------------------------------------------------------------
+# Live feed configuration
+# ---------------------------------------------------------------------------
+
+@dataclass
+class LiveFeedConfig:
+    refresh_interval_seconds: int = 60
+    min_refresh_interval_seconds: int = 30
+    max_refresh_interval_seconds: int = 300
+    max_observable_age_hours: int = 6
+    dedup_radius_deg: float = 0.01  # ~1km at equator
+    dedup_hour_window: int = 1
+    synthetic_fallback: bool = True
+    fallback_scenario: str = "dubai"

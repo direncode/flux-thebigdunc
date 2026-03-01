@@ -11,6 +11,9 @@ requests>=2.28
 # Dashboard
 streamlit>=1.30
 plotly>=5.18
+folium>=0.15
+streamlit-folium>=0.18
+streamlit-autorefresh>=1.0
 
 # Optional: for production SAR/GOES pipelines
 # rasterio>=1.3
