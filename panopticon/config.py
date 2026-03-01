@@ -7,7 +7,9 @@ tunable propagation weights, sluice gate thresholds.
 Every parameter here is a lever. Tune carefully.
 """
 
+import os
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Dict, List, Tuple
 
 # ---------------------------------------------------------------------------
@@ -88,6 +90,40 @@ CRITICAL_NODES: List[CriticalNode] = [
     (40.7128, -74.0060, "New York", "urban"),
     (35.6762, 139.6503, "Tokyo", "urban"),
     (31.2304, 121.4737, "Shanghai Port", "port"),
+    # --- Nuclear facilities ---
+    (51.3890, -1.3166, "Aldermaston AWE", "nuclear"),
+    (47.9063, 1.0459, "Saint-Laurent Nuclear", "nuclear"),
+    (37.4236, 126.4160, "Yeonggwang Nuclear", "nuclear"),
+    # --- Major dams ---
+    (36.0160, 32.9944, "Ataturk Dam", "dam"),
+    (30.9669, 111.0033, "Three Gorges Dam", "dam"),
+    (47.9567, -121.1345, "Grand Coulee Dam", "dam"),
+    # --- Strategic hospitals ---
+    (51.4994, -0.1746, "St Mary's Hospital London", "hospital"),
+    (40.7644, -73.9551, "NY Presbyterian", "hospital"),
+    # --- Data centers (major IX) ---
+    (50.1109, 8.6821, "Frankfurt DE-CIX", "datacenter"),
+    (38.9529, -77.4473, "Ashburn Data Center Alley", "datacenter"),
+    (1.3521, 103.8198, "Singapore Equinix SG1", "datacenter"),
+    # --- Horn of Africa / Red Sea ---
+    (11.5500, 43.1500, "Djibouti Port", "port"),
+    (15.3694, 44.1910, "Sana'a", "urban"),
+    (2.0469, 45.3182, "Mogadishu", "urban"),
+    # --- South China Sea ---
+    (16.0544, 108.2022, "Da Nang", "port"),
+    (14.5995, 120.9842, "Manila Port", "port"),
+    (10.8231, 106.6297, "Ho Chi Minh City", "urban"),
+    # --- Eastern Mediterranean ---
+    (36.8969, 30.7133, "Antalya", "urban"),
+    (33.8938, 35.5018, "Beirut Port", "port"),
+    (31.7683, 35.2137, "Jerusalem", "urban"),
+    # --- Korean Peninsula ---
+    (37.5665, 126.9780, "Seoul", "urban"),
+    (35.1796, 129.0756, "Busan Port", "port"),
+    (39.0392, 125.7625, "Pyongyang", "military"),
+    # --- Arctic shipping ---
+    (69.6489, 18.9551, "Tromso", "port"),
+    (68.9585, 33.0827, "Murmansk Port", "port"),
 ]
 
 # Build a lookup dict: (rounded lat, lon) -> node info
@@ -110,6 +146,11 @@ DEFAULT_WATCH_ZONES: List[BoundingBox] = [
     (44.0, 30.0, 52.0, 40.0, "Ukraine / Black Sea"),
     (10.0, 40.0, 15.0, 50.0, "Bab el-Mandeb / Horn"),
     (28.0, 30.0, 32.0, 35.0, "Suez Canal Zone"),
+    (-2.0, 36.0, 12.0, 52.0, "Horn of Africa"),
+    (5.0, 105.0, 22.0, 122.0, "South China Sea"),
+    (30.0, 25.0, 42.0, 40.0, "Eastern Mediterranean"),
+    (33.0, 124.0, 43.0, 132.0, "Korean Peninsula"),
+    (65.0, 10.0, 78.0, 50.0, "Arctic Shipping Routes"),
 ]
 
 
@@ -174,3 +215,12 @@ class LiveFeedConfig:
     dedup_hour_window: int = 1
     synthetic_fallback: bool = True
     fallback_scenario: str = "dubai"
+
+
+# ---------------------------------------------------------------------------
+# Source catalog path (multi-source ingestion)
+# ---------------------------------------------------------------------------
+
+SOURCE_CATALOG_PATH = str(
+    Path(__file__).resolve().parent / "sources" / "catalog.yaml"
+)

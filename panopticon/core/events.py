@@ -17,11 +17,12 @@ from enum import Enum
 from typing import Dict, List, Optional, Tuple
 
 from panopticon.config import CRITICAL_NODES, CriticalNode
-from panopticon.ingest.base import Observable, ObservableType
+from panopticon.ingest.base import GEOSPATIAL_TYPES, Observable, ObservableType
 
 
 class EventType(Enum):
     """Classified event types derived from observable clusters."""
+    # --- Original (satellite-derived) ---
     STRIKE_BARRAGE = "strike_barrage"
     STRUCTURAL_COLLAPSE = "structural_collapse"
     INDUSTRIAL_FIRE = "industrial_fire"
@@ -30,6 +31,32 @@ class EventType(Enum):
     ANOMALOUS_THERMAL = "anomalous_thermal"
     MILITARY_ACTIVITY = "military_activity"
     UNKNOWN_CLUSTER = "unknown_cluster"
+    # --- Natural hazards ---
+    SEISMIC_EVENT = "seismic_event"
+    VOLCANIC_ERUPTION = "volcanic_eruption"
+    SEVERE_WEATHER = "severe_weather"
+    FLOOD_EVENT = "flood_event"
+    # --- Geopolitical ---
+    ARMED_CONFLICT_EVENT = "armed_conflict_event"
+    MASS_PROTEST = "mass_protest"
+    SANCTIONS_EVENT = "sanctions_event"
+    # --- Economic ---
+    ECONOMIC_SHOCK = "economic_shock"
+    SUPPLY_CHAIN_DISRUPTION = "supply_chain_disruption"
+    COMMODITY_SPIKE = "commodity_spike"
+    # --- Humanitarian ---
+    HUMANITARIAN_CRISIS = "humanitarian_crisis"
+    DISEASE_OUTBREAK_EVENT = "disease_outbreak_event"
+    # --- Cyber / Infrastructure ---
+    CYBER_ATTACK = "cyber_attack"
+    INFRASTRUCTURE_DISRUPTION = "infrastructure_disruption"
+    # --- Environmental ---
+    ENVIRONMENTAL_CRISIS = "environmental_crisis"
+    # --- Transport ---
+    MARITIME_DISRUPTION = "maritime_disruption"
+    AIRSPACE_ANOMALY = "airspace_anomaly"
+    # --- Multi-domain ---
+    MULTI_DOMAIN_CLUSTER = "multi_domain_cluster"
 
 
 @dataclass
@@ -127,15 +154,73 @@ def cluster_observables(
     return clusters
 
 
+# Single-domain observable type → event type mapping (for non-satellite sources)
+_SINGLE_DOMAIN_MAP: Dict[ObservableType, EventType] = {
+    ObservableType.EARTHQUAKE: EventType.SEISMIC_EVENT,
+    ObservableType.VOLCANIC_ACTIVITY: EventType.VOLCANIC_ERUPTION,
+    ObservableType.FLOOD_ALERT: EventType.FLOOD_EVENT,
+    ObservableType.WATER_LEVEL: EventType.FLOOD_EVENT,
+    ObservableType.WEATHER_ALERT: EventType.SEVERE_WEATHER,
+    ObservableType.EXTREME_WEATHER: EventType.SEVERE_WEATHER,
+    ObservableType.ARMED_CONFLICT: EventType.ARMED_CONFLICT_EVENT,
+    ObservableType.PROTEST: EventType.MASS_PROTEST,
+    ObservableType.SANCTIONS_CHANGE: EventType.SANCTIONS_EVENT,
+    ObservableType.ECONOMIC_INDICATOR: EventType.ECONOMIC_SHOCK,
+    ObservableType.DISEASE_OUTBREAK: EventType.DISEASE_OUTBREAK_EVENT,
+    ObservableType.DISPLACEMENT: EventType.HUMANITARIAN_CRISIS,
+    ObservableType.CYBER_THREAT: EventType.CYBER_ATTACK,
+    ObservableType.AIR_QUALITY: EventType.ENVIRONMENTAL_CRISIS,
+    ObservableType.DEFORESTATION: EventType.ENVIRONMENTAL_CRISIS,
+    ObservableType.VESSEL_TRACKING: EventType.MARITIME_DISRUPTION,
+    ObservableType.AIRCRAFT_TRACKING: EventType.AIRSPACE_ANOMALY,
+    ObservableType.SPACE_WEATHER: EventType.INFRASTRUCTURE_DISRUPTION,
+    ObservableType.NEWS_EVENT: EventType.MULTI_DOMAIN_CLUSTER,
+    ObservableType.GENERIC: EventType.UNKNOWN_CLUSTER,
+}
+
+# Satellite-only observable types (handled by original classify logic)
+_SATELLITE_TYPES = frozenset({
+    ObservableType.THERMAL_HOTSPOT,
+    ObservableType.SAR_CHANGE,
+    ObservableType.SMOKE_PLUME,
+    ObservableType.FIRE_VECTOR,
+    ObservableType.STRUCTURAL_COLLAPSE,
+})
+
+
 def classify_cluster(cluster: List[Observable]) -> EventType:
     """
     Determine event type from a cluster of observables.
-    Pure pattern matching on observable types and counts.
+    Handles both satellite-only and cross-domain clusters.
     """
     type_counts: Dict[ObservableType, int] = {}
     for obs in cluster:
         type_counts[obs.obs_type] = type_counts.get(obs.obs_type, 0) + 1
 
+    obs_types_present = set(type_counts.keys())
+
+    # --- Cross-domain detection (multi-source corroboration) ---
+    if ObservableType.EARTHQUAKE in obs_types_present and ObservableType.THERMAL_HOTSPOT in obs_types_present:
+        return EventType.STRUCTURAL_COLLAPSE
+    if ObservableType.ARMED_CONFLICT in obs_types_present and ObservableType.DISPLACEMENT in obs_types_present:
+        return EventType.ARMED_CONFLICT_EVENT
+    if ObservableType.CYBER_THREAT in obs_types_present and ObservableType.ECONOMIC_INDICATOR in obs_types_present:
+        return EventType.INFRASTRUCTURE_DISRUPTION
+    if ObservableType.WEATHER_ALERT in obs_types_present and ObservableType.FLOOD_ALERT in obs_types_present:
+        return EventType.FLOOD_EVENT
+    if ObservableType.ARMED_CONFLICT in obs_types_present and ObservableType.THERMAL_HOTSPOT in obs_types_present:
+        return EventType.STRIKE_BARRAGE
+
+    # --- Single-domain non-satellite clusters ---
+    non_satellite = obs_types_present - _SATELLITE_TYPES
+    if non_satellite and not (obs_types_present & _SATELLITE_TYPES):
+        # Dominant non-satellite type wins
+        dominant = max(non_satellite, key=lambda t: type_counts.get(t, 0))
+        mapped = _SINGLE_DOMAIN_MAP.get(dominant)
+        if mapped:
+            return mapped
+
+    # --- Original satellite-only classification ---
     n_thermal = type_counts.get(ObservableType.THERMAL_HOTSPOT, 0)
     n_sar = type_counts.get(ObservableType.SAR_CHANGE, 0)
     n_plume = type_counts.get(ObservableType.SMOKE_PLUME, 0)
@@ -143,31 +228,19 @@ def classify_cluster(cluster: List[Observable]) -> EventType:
     avg_conf = sum(o.confidence for o in cluster) / len(cluster)
     avg_intensity = sum(o.intensity for o in cluster) / len(cluster)
 
-    # 5+ high-conf hotspots in tight radius → strike barrage
     if n_thermal >= 5 and avg_conf > 0.7 and avg_intensity > 0.5:
         return EventType.STRIKE_BARRAGE
-
-    # SAR change + thermal → structural collapse (blast damage)
     if n_sar >= 1 and n_thermal >= 2:
         return EventType.STRUCTURAL_COLLAPSE
-
-    # Plume + thermal → industrial fire
     if n_plume >= 1 and n_thermal >= 1:
         return EventType.INDUSTRIAL_FIRE
-
-    # SAR only → could be construction, earthquake, etc.
     if n_sar >= 2:
         return EventType.STRUCTURAL_COLLAPSE
-
-    # Thermal cluster but lower confidence → possible wildfire
     if n_thermal >= 3 and avg_conf < 0.7:
         return EventType.WILDFIRE_SPREAD
-
-    # Plume only → smoke corridor
     if n_plume >= 1:
         return EventType.SMOKE_CORRIDOR
 
-    # Thermal with military proximity check
     centroid_lat = sum(o.lat for o in cluster) / len(cluster)
     centroid_lon = sum(o.lon for o in cluster) / len(cluster)
     nearest, prox = find_nearest_critical(centroid_lat, centroid_lon)
@@ -188,11 +261,23 @@ def observables_to_seeds(
     """
     Master function: raw observables → classified event seeds.
     This is the entry point from ingestion to propagation.
+    Handles both tight geospatial clustering and wider non-geo clustering.
     """
-    clusters = cluster_observables(observables, cluster_radius_km, cluster_time_window)
+    # Separate geospatial from non-geospatial observables
+    geo_obs = [o for o in observables if o.obs_type in GEOSPATIAL_TYPES]
+    nongeo_obs = [o for o in observables if o.obs_type not in GEOSPATIAL_TYPES]
+
+    # Cluster geospatial with tight radius (original behavior)
+    geo_clusters = cluster_observables(geo_obs, cluster_radius_km, cluster_time_window)
+    # Cluster non-geospatial with wider parameters
+    nongeo_clusters = cluster_observables(
+        nongeo_obs, radius_km=50.0, time_window=timedelta(hours=2),
+    )
+
+    all_clusters = geo_clusters + nongeo_clusters
     seeds: List[EventSeed] = []
 
-    for cluster in clusters:
+    for cluster in all_clusters:
         event_type = classify_cluster(cluster)
 
         # Compute centroid

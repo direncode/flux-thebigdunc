@@ -18,6 +18,15 @@ from panopticon.core.threading import FutureThread
 from panopticon.dashboard.live_feed import LiveFeedState, get_status_text
 from panopticon.oracle.insight import OracleReport
 
+# Status color/icon for source health
+_HEALTH_STYLE = {
+    "healthy":  ("&#9679;", "#44ff44"),
+    "degraded": ("&#9679;", "#ffaa00"),
+    "failed":   ("&#9679;", "#ff4444"),
+    "disabled": ("&#9679;", "#666666"),
+    "pending":  ("&#9679;", "#4da6ff"),
+}
+
 
 # ---------------------------------------------------------------------------
 # Status bar
@@ -152,7 +161,7 @@ def render_metrics_row(
     feed_state: Optional[LiveFeedState],
 ) -> None:
     """Top-line metrics bar."""
-    cols = st.columns(6)
+    cols = st.columns(8)
 
     with cols[0]:
         obs_count = len(feed_state.all_observables) if feed_state else 0
@@ -175,3 +184,116 @@ def render_metrics_row(
         if report and report.insights:
             top_prop = report.insights[0].propensity_pct
         st.metric("Top Propensity", f"{top_prop:.0f}%")
+
+    with cols[6]:
+        # Active sources count
+        source_count = 0
+        if feed_state and feed_state.scheduler and hasattr(feed_state.scheduler, 'get_health_summary'):
+            summary = feed_state.scheduler.get_health_summary()
+            source_count = summary.get("healthy", 0) + summary.get("degraded", 0)
+        st.metric("Active Sources", source_count)
+
+    with cols[7]:
+        # Categories
+        cat_count = 0
+        if feed_state and feed_state.scheduler and hasattr(feed_state.scheduler, 'get_health_summary'):
+            summary = feed_state.scheduler.get_health_summary()
+            cat_count = summary.get("categories", 0)
+        st.metric("Categories", cat_count)
+
+
+# ---------------------------------------------------------------------------
+# Source health panel
+# ---------------------------------------------------------------------------
+
+def render_source_health_panel(feed_state: Optional[LiveFeedState]) -> None:
+    """Table of all sources with status, last poll, record count, errors."""
+    if not feed_state or not feed_state.scheduler:
+        st.info("Multi-source scheduler not initialized. Using FIRMS-only mode.")
+        return
+
+    scheduler = feed_state.scheduler
+    if not hasattr(scheduler, 'get_all_health'):
+        st.info("Scheduler does not expose health data.")
+        return
+
+    all_health = scheduler.get_all_health()
+    if not all_health:
+        st.info("No source health data available.")
+        return
+
+    # Summary bar
+    summary = scheduler.get_health_summary()
+    total = summary.get("total_sources", 0)
+    healthy = summary.get("healthy", 0)
+    degraded = summary.get("degraded", 0)
+    failed = summary.get("failed", 0)
+
+    st.markdown(
+        f'<div style="background:#0d0d0d;border:1px solid #1a3a5c;padding:10px;'
+        f'border-radius:4px;font-family:Courier New;font-size:0.85em;margin-bottom:10px">'
+        f'<span style="color:#44ff44">&#9679; {healthy} healthy</span> &nbsp;|&nbsp; '
+        f'<span style="color:#ffaa00">&#9679; {degraded} degraded</span> &nbsp;|&nbsp; '
+        f'<span style="color:#ff4444">&#9679; {failed} failed</span> &nbsp;|&nbsp; '
+        f'<span style="color:#888">{total} total sources</span>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+
+    # Group by category
+    by_category: Dict[str, list] = {}
+    for h in all_health.values():
+        cat = h.category if hasattr(h, 'category') else "unknown"
+        by_category.setdefault(cat, []).append(h)
+
+    for category in sorted(by_category.keys()):
+        sources = by_category[category]
+        with st.expander(f"{category.upper()} ({len(sources)} sources)", expanded=False):
+            rows_html = ""
+            for h in sources:
+                icon, color = _HEALTH_STYLE.get(h.status, ("&#9679;", "#888"))
+                err_text = f' <span style="color:#ff4444">ERR: {h.last_error[:40]}...</span>' if h.last_error else ""
+                rows_html += (
+                    f'<div style="padding:4px 0;border-bottom:1px solid #1a1a1a;font-size:0.82em">'
+                    f'<span style="color:{color}">{icon}</span> '
+                    f'<b>{h.source_name}</b> '
+                    f'<span style="color:#888">| {h.total_polls} polls | {h.total_records} records</span>'
+                    f'{err_text}'
+                    f'</div>'
+                )
+            st.markdown(
+                f'<div style="font-family:Courier New;color:#e0e0e0">{rows_html}</div>',
+                unsafe_allow_html=True,
+            )
+
+
+# ---------------------------------------------------------------------------
+# Category toggles for map layers
+# ---------------------------------------------------------------------------
+
+def render_category_toggles(feed_state: Optional[LiveFeedState]) -> Dict[str, bool]:
+    """Checkbox grid for toggling source categories on/off. Returns active categories."""
+    active: Dict[str, bool] = {}
+    if not feed_state or not feed_state.scheduler:
+        return active
+
+    scheduler = feed_state.scheduler
+    if not hasattr(scheduler, 'get_all_health'):
+        return active
+
+    all_health = scheduler.get_all_health()
+    categories = sorted({
+        h.category for h in all_health.values()
+        if hasattr(h, 'category')
+    })
+
+    if not categories:
+        return active
+
+    cols = st.columns(min(4, len(categories)))
+    for i, cat in enumerate(categories):
+        col = cols[i % len(cols)]
+        with col:
+            active[cat] = st.checkbox(cat.replace("_", " ").title(), value=True, key=f"cat_toggle_{cat}")
+
+    return active

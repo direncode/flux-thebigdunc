@@ -39,6 +39,7 @@ from panopticon.ingest.base import Observable
 # ---------------------------------------------------------------------------
 
 EVENT_TYPE_COLORS: Dict[str, str] = {
+    # --- Satellite / fire ---
     "strike_barrage": "#ff4444",
     "structural_collapse": "#ff8800",
     "industrial_fire": "#ffaa00",
@@ -47,6 +48,62 @@ EVENT_TYPE_COLORS: Dict[str, str] = {
     "military_activity": "#ff0066",
     "anomalous_thermal": "#cc44ff",
     "unknown_cluster": "#666666",
+    # --- Seismic / volcanic ---
+    "seismic_event": "#ff7700",
+    "volcanic_eruption": "#ff5500",
+    # --- Weather / flood ---
+    "severe_weather": "#ffdd44",
+    "flood_event": "#4488ff",
+    # --- Conflict / geopolitical ---
+    "armed_conflict_event": "#dd00dd",
+    "mass_protest": "#bb44bb",
+    "sanctions_event": "#9944aa",
+    # --- Economic ---
+    "economic_shock": "#999999",
+    "supply_chain_disruption": "#aaaaaa",
+    "commodity_spike": "#bbbbbb",
+    # --- Health / humanitarian ---
+    "humanitarian_crisis": "#ff88cc",
+    "disease_outbreak_event": "#ff66aa",
+    # --- Cyber / infra ---
+    "cyber_attack": "#00cccc",
+    "infrastructure_disruption": "#0099aa",
+    # --- Environmental ---
+    "environmental_crisis": "#44cc44",
+    # --- Transport ---
+    "maritime_disruption": "#44dddd",
+    "airspace_anomaly": "#66eeee",
+    # --- Multi-domain ---
+    "multi_domain_cluster": "#4da6ff",
+}
+
+# Observable type → marker color (by domain)
+OBS_DOMAIN_COLORS: Dict[str, str] = {
+    "thermal_hotspot": "#ff4400",
+    "sar_change": "#ff6600",
+    "smoke_plume": "#888888",
+    "fire_vector": "#ff4400",
+    "structural_collapse": "#ff8800",
+    "earthquake": "#ff7700",
+    "volcanic_activity": "#ff5500",
+    "weather_alert": "#ffdd44",
+    "extreme_weather": "#ffcc00",
+    "flood_alert": "#4488ff",
+    "water_level": "#4466ff",
+    "air_quality": "#44cc44",
+    "deforestation": "#33aa33",
+    "armed_conflict": "#dd00dd",
+    "protest": "#bb44bb",
+    "vessel_tracking": "#44dddd",
+    "aircraft_tracking": "#66eeee",
+    "economic_indicator": "#999999",
+    "sanctions_change": "#9944aa",
+    "news_event": "#aaaaaa",
+    "disease_outbreak": "#ff66aa",
+    "cyber_threat": "#00cccc",
+    "space_weather": "#0099aa",
+    "displacement": "#ff88cc",
+    "generic": "#666666",
 }
 
 CRITICAL_NODE_ICONS: Dict[str, Tuple[str, str]] = {
@@ -56,6 +113,10 @@ CRITICAL_NODE_ICONS: Dict[str, Tuple[str, str]] = {
     "chokepoint": ("warning-sign", "red"),
     "military": ("screenshot", "darkred"),
     "urban": ("home", "gray"),
+    "nuclear": ("flash", "darkred"),
+    "dam": ("tint", "blue"),
+    "hospital": ("plus-sign", "green"),
+    "datacenter": ("hdd", "purple"),
 }
 
 # CSS for pulsing high-intensity markers
@@ -257,15 +318,46 @@ def _add_observable_heatmap(m: folium.Map, observables: List[Observable]) -> Non
 
 
 def _add_observable_markers(m: folium.Map, observables: List[Observable]) -> None:
-    """Render raw observables as small circle markers (capped for performance)."""
+    """Render raw observables as domain-colored circle markers with clustering."""
     if not observables:
         return
-    fg = FeatureGroup(name="Raw Hotspots", show=False)  # off by default
-    # Cap at 500 for performance
-    display_obs = observables[:500] if len(observables) > 500 else observables
+
+    # Use MarkerCluster for large datasets
+    use_clustering = len(observables) > 200
+    fg = FeatureGroup(name="Raw Observables", show=False)  # off by default
+
+    if use_clustering:
+        cluster_group = folium.plugins.MarkerCluster(
+            name="Observable Clusters",
+            options={
+                "maxClusterRadius": 40,
+                "disableClusteringAtZoom": 10,
+            },
+        )
+    else:
+        cluster_group = fg
+
+    # Cap at 1000 for performance
+    display_obs = observables[:1000] if len(observables) > 1000 else observables
     for obs in display_obs:
         radius = 3 + (obs.intensity * 4)
-        color = "#ff6600" if obs.obs_type.value == "thermal_hotspot" else "#4da6ff"
+        color = OBS_DOMAIN_COLORS.get(obs.obs_type.value, "#4da6ff")
+
+        # Build extra info lines for popup
+        extra_lines = ""
+        if obs.brightness_temp_k:
+            extra_lines += f"Brightness: {round(obs.brightness_temp_k, 1)}K<br>"
+        if obs.frp_mw:
+            extra_lines += f"FRP: {round(obs.frp_mw, 1)} MW<br>"
+        if obs.sar_coherence_loss:
+            extra_lines += f"SAR loss: {round(obs.sar_coherence_loss, 2)}<br>"
+        if obs.plume_length_km:
+            extra_lines += f"Plume: {round(obs.plume_vector_deg or 0)}° / {round(obs.plume_length_km or 0, 1)}km<br>"
+        # Show extra dict fields for non-satellite sources
+        for k, v in list(obs.extra.items())[:5]:
+            if k not in ("intensity",):
+                extra_lines += f"{k}: {v}<br>"
+
         folium.CircleMarker(
             location=[obs.lat, obs.lon],
             radius=radius,
@@ -274,26 +366,25 @@ def _add_observable_markers(m: folium.Map, observables: List[Observable]) -> Non
             fill_color=color,
             fill_opacity=0.5 * obs.confidence,
             weight=0.5,
-            tooltip=(
-                f"{obs.obs_type.value} | conf={obs.confidence:.2f}"
-            ),
+            tooltip=f"{obs.obs_type.value} | {obs.source} | conf={obs.confidence:.2f}",
             popup=folium.Popup(
                 f'<div style="{POPUP_STYLE}">'
-                f"<b style='color:#ff8800'>{obs.obs_type.value.upper()}</b><br>"
+                f"<b style='color:{color}'>{obs.obs_type.value.upper()}</b><br>"
                 f"<hr style='border-color:#1a3a5c;margin:5px 0'>"
                 f"Lat: {obs.lat:.4f}° | Lon: {obs.lon:.4f}°<br>"
                 f"Confidence: {obs.confidence:.2f}<br>"
-                f"{'Brightness: ' + str(round(obs.brightness_temp_k, 1)) + 'K<br>' if obs.brightness_temp_k else ''}"
-                f"{'FRP: ' + str(round(obs.frp_mw, 1)) + ' MW<br>' if obs.frp_mw else ''}"
-                f"{'SAR loss: ' + str(round(obs.sar_coherence_loss, 2)) + '<br>' if obs.sar_coherence_loss else ''}"
-                f"{'Plume: ' + str(round(obs.plume_vector_deg or 0)) + '° / ' + str(round(obs.plume_length_km or 0, 1)) + 'km<br>' if obs.plume_length_km else ''}"
+                f"{extra_lines}"
                 f"Time: {obs.timestamp.strftime('%Y-%m-%d %H:%M UTC')}<br>"
                 f"Source: {obs.source} / {obs.satellite}"
                 f"</div>",
                 max_width=280,
             ),
-        ).add_to(fg)
-    fg.add_to(m)
+        ).add_to(cluster_group)
+
+    if use_clustering:
+        cluster_group.add_to(m)
+    else:
+        fg.add_to(m)
 
 
 # ---------------------------------------------------------------------------

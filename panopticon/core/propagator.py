@@ -87,6 +87,102 @@ CAUSAL_TEMPLATES: Dict[EventType, List[Tuple[EventType, float, str]]] = {
     EventType.UNKNOWN_CLUSTER: [
         (EventType.ANOMALOUS_THERMAL, 0.25, "unclassified thermal event"),
     ],
+    # --- Cross-domain causal cascades ---
+    EventType.SEISMIC_EVENT: [
+        (EventType.STRUCTURAL_COLLAPSE, 0.80, "seismic structural damage"),
+        (EventType.INDUSTRIAL_FIRE, 0.45, "ruptured gas/fuel lines"),
+        (EventType.FLOOD_EVENT, 0.30, "dam breach or levee failure"),
+        (EventType.SUPPLY_CHAIN_DISRUPTION, 0.50, "port/road/rail damage"),
+        (EventType.HUMANITARIAN_CRISIS, 0.40, "population displacement"),
+        (EventType.INFRASTRUCTURE_DISRUPTION, 0.55, "power/water/comms outage"),
+    ],
+    EventType.VOLCANIC_ERUPTION: [
+        (EventType.SMOKE_CORRIDOR, 0.85, "volcanic ash plume"),
+        (EventType.SEVERE_WEATHER, 0.30, "weather pattern disruption"),
+        (EventType.SUPPLY_CHAIN_DISRUPTION, 0.50, "aviation grounding / shipping reroute"),
+        (EventType.HUMANITARIAN_CRISIS, 0.45, "evacuation zone expansion"),
+        (EventType.AIRSPACE_ANOMALY, 0.65, "airspace closure from ash"),
+        (EventType.ENVIRONMENTAL_CRISIS, 0.50, "ecosystem and agriculture impact"),
+    ],
+    EventType.FLOOD_EVENT: [
+        (EventType.INFRASTRUCTURE_DISRUPTION, 0.60, "flooded infrastructure"),
+        (EventType.SUPPLY_CHAIN_DISRUPTION, 0.55, "port/road inaccessible"),
+        (EventType.HUMANITARIAN_CRISIS, 0.50, "flood displacement"),
+        (EventType.DISEASE_OUTBREAK_EVENT, 0.25, "waterborne disease risk"),
+        (EventType.ECONOMIC_SHOCK, 0.30, "agricultural/property loss"),
+    ],
+    EventType.SEVERE_WEATHER: [
+        (EventType.FLOOD_EVENT, 0.40, "precipitation-driven flooding"),
+        (EventType.WILDFIRE_SPREAD, 0.25, "lightning/heat ignition"),
+        (EventType.INFRASTRUCTURE_DISRUPTION, 0.35, "storm damage"),
+        (EventType.SUPPLY_CHAIN_DISRUPTION, 0.30, "transport disruption"),
+    ],
+    EventType.ARMED_CONFLICT_EVENT: [
+        (EventType.STRIKE_BARRAGE, 0.60, "escalation to strikes"),
+        (EventType.HUMANITARIAN_CRISIS, 0.55, "conflict displacement"),
+        (EventType.SUPPLY_CHAIN_DISRUPTION, 0.50, "trade route interdiction"),
+        (EventType.ECONOMIC_SHOCK, 0.40, "conflict economic impact"),
+        (EventType.SANCTIONS_EVENT, 0.30, "international sanctions response"),
+        (EventType.MARITIME_DISRUPTION, 0.45, "naval blockade or shipping risk"),
+    ],
+    EventType.MASS_PROTEST: [
+        (EventType.ARMED_CONFLICT_EVENT, 0.30, "protest escalation to violence"),
+        (EventType.ECONOMIC_SHOCK, 0.25, "business disruption from unrest"),
+        (EventType.INFRASTRUCTURE_DISRUPTION, 0.20, "blockades and shutdowns"),
+    ],
+    EventType.ECONOMIC_SHOCK: [
+        (EventType.MASS_PROTEST, 0.30, "economic grievance unrest"),
+        (EventType.COMMODITY_SPIKE, 0.50, "market contagion"),
+        (EventType.SUPPLY_CHAIN_DISRUPTION, 0.40, "credit/trade disruption"),
+    ],
+    EventType.SUPPLY_CHAIN_DISRUPTION: [
+        (EventType.COMMODITY_SPIKE, 0.55, "shortage-driven price spike"),
+        (EventType.ECONOMIC_SHOCK, 0.35, "cascading economic impact"),
+    ],
+    EventType.SANCTIONS_EVENT: [
+        (EventType.ECONOMIC_SHOCK, 0.45, "sanctions economic impact"),
+        (EventType.SUPPLY_CHAIN_DISRUPTION, 0.40, "sanctions trade disruption"),
+        (EventType.COMMODITY_SPIKE, 0.35, "sanctioned commodity repricing"),
+    ],
+    EventType.CYBER_ATTACK: [
+        (EventType.INFRASTRUCTURE_DISRUPTION, 0.50, "cyber-physical impact"),
+        (EventType.SUPPLY_CHAIN_DISRUPTION, 0.40, "digital supply chain attack"),
+        (EventType.ECONOMIC_SHOCK, 0.25, "market panic from cyber event"),
+    ],
+    EventType.INFRASTRUCTURE_DISRUPTION: [
+        (EventType.SUPPLY_CHAIN_DISRUPTION, 0.55, "infrastructure-dependent supply chain"),
+        (EventType.HUMANITARIAN_CRISIS, 0.30, "uninhabitable conditions"),
+        (EventType.ECONOMIC_SHOCK, 0.25, "infrastructure cost cascade"),
+    ],
+    EventType.DISEASE_OUTBREAK_EVENT: [
+        (EventType.HUMANITARIAN_CRISIS, 0.35, "health migration"),
+        (EventType.ECONOMIC_SHOCK, 0.40, "pandemic economic impact"),
+        (EventType.SUPPLY_CHAIN_DISRUPTION, 0.45, "lockdown supply disruption"),
+    ],
+    EventType.ENVIRONMENTAL_CRISIS: [
+        (EventType.HUMANITARIAN_CRISIS, 0.40, "environmental displacement"),
+        (EventType.ECONOMIC_SHOCK, 0.30, "environmental remediation cost"),
+        (EventType.DISEASE_OUTBREAK_EVENT, 0.20, "contamination health risk"),
+    ],
+    EventType.HUMANITARIAN_CRISIS: [
+        (EventType.MASS_PROTEST, 0.25, "host region destabilization"),
+        (EventType.DISEASE_OUTBREAK_EVENT, 0.20, "displacement health crisis"),
+    ],
+    EventType.COMMODITY_SPIKE: [
+        (EventType.ECONOMIC_SHOCK, 0.40, "commodity-driven inflation"),
+        (EventType.MASS_PROTEST, 0.20, "price-driven unrest"),
+    ],
+    EventType.MARITIME_DISRUPTION: [
+        (EventType.SUPPLY_CHAIN_DISRUPTION, 0.60, "shipping route blocked"),
+        (EventType.COMMODITY_SPIKE, 0.45, "maritime trade repricing"),
+    ],
+    EventType.AIRSPACE_ANOMALY: [
+        (EventType.SUPPLY_CHAIN_DISRUPTION, 0.40, "air cargo disruption"),
+        (EventType.ECONOMIC_SHOCK, 0.20, "aviation industry impact"),
+    ],
+    EventType.MULTI_DOMAIN_CLUSTER: [
+        (EventType.ECONOMIC_SHOCK, 0.25, "multi-domain signal convergence"),
+    ],
 }
 
 # ---------------------------------------------------------------------------
@@ -128,6 +224,24 @@ CRITICAL_CASCADE: Dict[str, List[CascadeEffect]] = {
     "urban": [
         CascadeEffect("civilian evacuation", 0.20, 1.0, "humanitarian"),
         CascadeEffect("emergency services overload", 0.15, 0.5, "humanitarian"),
+    ],
+    "nuclear": [
+        CascadeEffect("radiation exclusion zone", 0.35, 0.5, "humanitarian"),
+        CascadeEffect("energy grid destabilization", 0.25, 2.0, "supply_chain"),
+        CascadeEffect("international emergency response", 0.20, 4.0, "humanitarian"),
+    ],
+    "dam": [
+        CascadeEffect("downstream flood risk", 0.30, 1.0, "humanitarian"),
+        CascadeEffect("water supply disruption", 0.25, 2.0, "supply_chain"),
+        CascadeEffect("agricultural devastation", 0.20, 12.0, "economic"),
+    ],
+    "hospital": [
+        CascadeEffect("healthcare capacity collapse", 0.25, 0.5, "humanitarian"),
+        CascadeEffect("medical supply surge", 0.15, 2.0, "supply_chain"),
+    ],
+    "datacenter": [
+        CascadeEffect("digital services outage", 0.25, 0.5, "supply_chain"),
+        CascadeEffect("financial systems disruption", 0.20, 1.0, "economic"),
     ],
 }
 

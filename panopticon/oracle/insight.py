@@ -63,6 +63,25 @@ EVENT_VERBS: Dict[EventType, str] = {
     EventType.MILITARY_ACTIVITY: "military mobilisation observed",
     EventType.ANOMALOUS_THERMAL: "anomalous thermal signature",
     EventType.UNKNOWN_CLUSTER: "unclassified thermal cluster",
+    # --- Cross-domain event verbs ---
+    EventType.SEISMIC_EVENT: "seismic event detected",
+    EventType.VOLCANIC_ERUPTION: "volcanic eruption reported",
+    EventType.SEVERE_WEATHER: "severe weather alert issued",
+    EventType.FLOOD_EVENT: "flood conditions confirmed",
+    EventType.ARMED_CONFLICT_EVENT: "armed conflict reported",
+    EventType.MASS_PROTEST: "mass protest observed",
+    EventType.SANCTIONS_EVENT: "sanctions action imposed",
+    EventType.ECONOMIC_SHOCK: "economic shock signal",
+    EventType.SUPPLY_CHAIN_DISRUPTION: "supply chain disruption detected",
+    EventType.COMMODITY_SPIKE: "commodity price spike",
+    EventType.HUMANITARIAN_CRISIS: "humanitarian crisis escalates",
+    EventType.DISEASE_OUTBREAK_EVENT: "disease outbreak reported",
+    EventType.CYBER_ATTACK: "cyber attack detected",
+    EventType.INFRASTRUCTURE_DISRUPTION: "infrastructure failure confirmed",
+    EventType.ENVIRONMENTAL_CRISIS: "environmental crisis emerging",
+    EventType.MARITIME_DISRUPTION: "maritime route disrupted",
+    EventType.AIRSPACE_ANOMALY: "airspace anomaly detected",
+    EventType.MULTI_DOMAIN_CLUSTER: "multi-domain signal convergence",
 }
 
 TIMELINE_LABELS = [

@@ -5,12 +5,13 @@ build-backend = "setuptools.backends._legacy:_Backend"
 [project]
 name = "panopticon-dark-knight"
 version = "0.1.0"
-description = "Satellite-only foresight engine for cascading event detection."
+description = "Multi-source intelligence foresight engine for cascading event detection."
 requires-python = ">=3.10"
 dependencies = [
     "networkx>=3.0",
     "numpy>=1.24",
     "requests>=2.28",
+    "pyyaml>=6.0",
     "streamlit>=1.30",
     "plotly>=5.18",
     "folium>=0.15",

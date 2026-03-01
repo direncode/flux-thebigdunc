@@ -42,13 +42,16 @@ from panopticon.core.propagator import BicycleChainPropagator
 from panopticon.core.threading import DivergentThreader, FutureThread
 from panopticon.dashboard.components import (
     render_alert_banner,
+    render_category_toggles,
     render_feed_log,
     render_insight_cards,
     render_metrics_row,
+    render_source_health_panel,
     render_status_bar,
 )
 from panopticon.dashboard.live_feed import (
     LiveFeedState,
+    init_scheduler,
     merge_synthetic,
     poll_all_zones,
     poll_next_zone,
@@ -139,8 +142,10 @@ def render_sidebar() -> bool:
                 protocol: EthicalProtocol = st.session_state.protocol
                 if protocol.activate(phrase):
                     st.session_state.activated = True
-                    # Initialize live feed state
-                    st.session_state.live_feed = LiveFeedState()
+                    # Initialize live feed state + multi-source scheduler
+                    lf = LiveFeedState()
+                    init_scheduler(lf)
+                    st.session_state.live_feed = lf
                     st.session_state.first_run_done = False
                     st.rerun()
                 else:
@@ -163,12 +168,12 @@ def render_sidebar() -> bool:
         st.markdown("### DATA SOURCE")
         feed_mode = st.radio(
             "Mode:",
-            ["Live FIRMS", "Synthetic Scenario"],
+            ["Live Multi-Source", "Synthetic Scenario"],
             index=0 if st.session_state.feed_mode == "live" else 1,
             horizontal=True,
             key="feed_mode_radio",
         )
-        st.session_state.feed_mode = "live" if feed_mode == "Live FIRMS" else "synthetic"
+        st.session_state.feed_mode = "live" if feed_mode == "Live Multi-Source" else "synthetic"
 
         if st.session_state.feed_mode == "live":
             refresh = st.slider(
@@ -176,6 +181,24 @@ def render_sidebar() -> bool:
                 key="refresh_interval_slider",
             )
             st.session_state.refresh_interval = refresh
+
+            # Show scheduler status
+            lf_check = st.session_state.live_feed
+            if lf_check and lf_check.scheduler and hasattr(lf_check.scheduler, 'get_health_summary'):
+                summary = lf_check.scheduler.get_health_summary()
+                st.markdown(
+                    f'<p style="color:#44ff44;font-family:Courier New;font-size:0.8em">'
+                    f'Multi-source polling active. '
+                    f'{summary.get("healthy", 0)}/{summary.get("total_sources", 0)} sources healthy. '
+                    f'Round-robin across {len(DEFAULT_WATCH_ZONES)} watch zones.</p>',
+                    unsafe_allow_html=True,
+                )
+            else:
+                st.markdown(
+                    '<p style="color:#ffaa00;font-family:Courier New;font-size:0.8em">'
+                    'FIRMS-only fallback mode. Install pyyaml to enable multi-source.</p>',
+                    unsafe_allow_html=True,
+                )
 
             api_key = st.text_input(
                 "FIRMS API Key:",
@@ -186,12 +209,6 @@ def render_sidebar() -> bool:
             if st.session_state.live_feed:
                 st.session_state.live_feed.firms_api_key = api_key
                 st.session_state.live_feed.refresh_interval_s = refresh
-
-            st.markdown(
-                '<p style="color:#44ff44;font-family:Courier New;font-size:0.8em">'
-                'Live FIRMS polling active. Round-robin across 5 watch zones.</p>',
-                unsafe_allow_html=True,
-            )
 
             if st.button("FORCE POLL NOW", type="secondary"):
                 _force_live_poll()
@@ -206,6 +223,10 @@ def render_sidebar() -> bool:
                     threading=_get_threading(),
                 )
                 _sync_to_session()
+
+            # Source management expander
+            with st.expander("Source Management", expanded=False):
+                render_source_health_panel(st.session_state.live_feed)
 
         else:
             scenario = st.selectbox(
@@ -286,13 +307,18 @@ def _sync_to_session() -> None:
 
 
 def _force_live_poll() -> None:
-    """Force an immediate full poll of all FIRMS zones."""
+    """Force an immediate full poll of all sources."""
     lf: LiveFeedState = st.session_state.live_feed
     if not lf:
         return
 
     lf.last_poll_monotonic = None  # force poll
-    with st.spinner("Polling FIRMS satellites across all watch zones..."):
+    spinner_msg = (
+        "Polling all intelligence sources..."
+        if lf.scheduler
+        else "Polling FIRMS satellites across all watch zones..."
+    )
+    with st.spinner(spinner_msg):
         new_count = poll_all_zones(lf)
 
     if new_count == 0 and not lf.all_observables:
@@ -423,13 +449,8 @@ def render_sonar_view(graph: Optional[TemporalGraph], threads: List[FutureThread
         node_y.append(r * math.sin(angle))
         momentum = graph.get_chain_momentum(node_id)
         node_text.append(f"{seed.label}<br>p={momentum:.2f} d={seed.depth}")
-        colors = {
-            "strike_barrage": "#ff4444", "structural_collapse": "#ff8800",
-            "industrial_fire": "#ffaa00", "wildfire_spread": "#ff6600",
-            "smoke_corridor": "#888888", "military_activity": "#ff0066",
-            "anomalous_thermal": "#cc44ff", "unknown_cluster": "#444444",
-        }
-        node_color.append(colors.get(seed.event_type.value, "#4da6ff"))
+        from panopticon.dashboard.map_view import EVENT_TYPE_COLORS as _ETC
+        node_color.append(_ETC.get(seed.event_type.value, "#4da6ff"))
         node_size.append(8 + momentum * 20)
 
     for u, v, data in graph.G.edges(data=True):
@@ -615,10 +636,10 @@ def main():
         st.markdown("### FEED LOG")
         render_feed_log(lf)
 
-    # --- Tabs: Sonar, Timeline, Raw Data ---
+    # --- Tabs: Sonar, Timeline, Source Health, Raw Data ---
     st.markdown("---")
-    tab_sonar, tab_timeline, tab_raw = st.tabs([
-        "SONAR VIEW", "TIMELINE", "RAW DATA",
+    tab_sonar, tab_timeline, tab_health, tab_raw = st.tabs([
+        "SONAR VIEW", "TIMELINE", "SOURCE HEALTH", "RAW DATA",
     ])
 
     with tab_sonar:
@@ -626,6 +647,10 @@ def main():
 
     with tab_timeline:
         render_momentum_timeline(graph)
+
+    with tab_health:
+        st.markdown("### MULTI-SOURCE INTELLIGENCE FEED HEALTH")
+        render_source_health_panel(lf)
 
     with tab_raw:
         st.markdown("### Graph Summary")
