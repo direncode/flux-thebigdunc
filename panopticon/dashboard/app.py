@@ -1,13 +1,12 @@
 """
-Panopticon Dark Knight — Intelligence-Grade Dashboard
-=====================================================
-Map-first, live-by-default. Navigable satellite imagery with
-real-time FIRMS hotspot feed and full propagation pipeline.
+PANOPTICON DARK KNIGHT — Multi-Source Intelligence Dashboard
+=============================================================
+107-source real-time intelligence platform. GDELT OSINT backbone.
+Zero API keys. Zero signup. Map-first. Live-by-default.
 
 Run: streamlit run panopticon/dashboard/app.py
 
-"The sonar gives you a picture of the whole city. But it's wrong."
-"I know. I just needed it for tonight."
+"The sonar gives you a picture of the whole city."
 """
 
 from __future__ import annotations
@@ -65,32 +64,170 @@ from panopticon.oracle.insight import InsightOracle, OracleReport, format_report
 
 
 # ---------------------------------------------------------------------------
-# Page config — Dark Knight aesthetic
+# Page config
 # ---------------------------------------------------------------------------
 
 st.set_page_config(
-    page_title="PANOPTICON DARK KNIGHT",
+    page_title="PANOPTICON",
     page_icon="🦇",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 
-# Dark sonar CSS
+# Kevlar CSS — minimal, tight, professional
 st.markdown("""
 <style>
-    .stApp { background-color: #0a0a0a; color: #e0e0e0; }
-    .stSidebar { background-color: #0d0d0d; }
-    .stSidebar .stMarkdown { color: #a0a0a0; }
-    h1, h2, h3 { color: #4da6ff !important; font-family: 'Courier New', monospace !important; }
-    .stMetric label { color: #4da6ff !important; }
-    .stMetric [data-testid="stMetricValue"] { color: #ffffff !important; }
-    .warning-banner {
-        background: #1a1a00; border: 1px solid #665500; color: #ffcc00;
-        padding: 12px; border-radius: 4px; font-family: 'Courier New', monospace;
-        white-space: pre-line; font-size: 0.85em; margin-bottom: 8px;
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap');
+
+    :root {
+        --bg: #06080c;
+        --bg2: #0c1018;
+        --bg3: #111820;
+        --accent: #00d4ff;
+        --accent2: #0088cc;
+        --danger: #ff3355;
+        --warning: #ffaa00;
+        --success: #00ff88;
+        --text: #c8d6e5;
+        --text-dim: #5a6a7a;
+        --border: #1a2535;
+        --mono: 'JetBrains Mono', 'Courier New', monospace;
     }
-    /* Make folium map container full-width */
-    iframe { border: 1px solid #1a3a5c !important; border-radius: 6px !important; }
+
+    .stApp {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--mono);
+    }
+    .stSidebar {
+        background: var(--bg2) !important;
+        border-right: 1px solid var(--border);
+    }
+    .stSidebar .stMarkdown { color: var(--text-dim); }
+
+    h1, h2, h3 {
+        color: var(--accent) !important;
+        font-family: var(--mono) !important;
+        font-weight: 600 !important;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+    }
+    h1 { font-size: 1.4rem !important; }
+    h2 { font-size: 1.1rem !important; }
+    h3 { font-size: 0.95rem !important; }
+
+    /* Metrics — compact monospace */
+    .stMetric label {
+        color: var(--text-dim) !important;
+        font-size: 0.7rem !important;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+    .stMetric [data-testid="stMetricValue"] {
+        color: var(--accent) !important;
+        font-family: var(--mono) !important;
+        font-size: 1.3rem !important;
+        font-weight: 700;
+    }
+
+    /* Tabs */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 0;
+        background: var(--bg2);
+        border-radius: 4px;
+        padding: 2px;
+    }
+    .stTabs [data-baseweb="tab"] {
+        font-family: var(--mono) !important;
+        font-size: 0.75rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--text-dim);
+        border-radius: 3px;
+        padding: 6px 14px;
+    }
+    .stTabs [aria-selected="true"] {
+        background: var(--bg3) !important;
+        color: var(--accent) !important;
+    }
+
+    /* Map iframe */
+    iframe {
+        border: 1px solid var(--border) !important;
+        border-radius: 4px !important;
+    }
+
+    /* Buttons */
+    .stButton button {
+        font-family: var(--mono) !important;
+        font-size: 0.75rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        border: 1px solid var(--border);
+        background: var(--bg3);
+        color: var(--accent);
+    }
+    .stButton button:hover {
+        border-color: var(--accent);
+        background: var(--bg2);
+    }
+    .stButton button[kind="primary"] {
+        background: var(--accent2) !important;
+        color: #ffffff !important;
+        border-color: var(--accent) !important;
+    }
+
+    /* Expanders */
+    .streamlit-expanderHeader {
+        font-family: var(--mono) !important;
+        font-size: 0.78rem;
+        color: var(--text-dim);
+        background: var(--bg2);
+    }
+
+    /* Hide default Streamlit branding */
+    #MainMenu { visibility: hidden; }
+    footer { visibility: hidden; }
+    header { visibility: hidden; }
+
+    /* Status bar custom classes */
+    .kevlar-bar {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 8px 16px;
+        font-family: var(--mono);
+        font-size: 0.78rem;
+        color: var(--text);
+        margin-bottom: 8px;
+    }
+    .kevlar-accent { color: var(--accent); }
+    .kevlar-danger { color: var(--danger); }
+    .kevlar-warn { color: var(--warning); }
+    .kevlar-success { color: var(--success); }
+    .kevlar-dim { color: var(--text-dim); }
+    .kevlar-card {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 12px;
+        font-family: var(--mono);
+        font-size: 0.78rem;
+        color: var(--text);
+        margin-bottom: 6px;
+    }
+    .kevlar-tag {
+        display: inline-block;
+        background: var(--bg3);
+        border: 1px solid var(--border);
+        border-radius: 2px;
+        padding: 2px 6px;
+        font-size: 0.68rem;
+        color: var(--accent);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        margin-right: 4px;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -128,134 +265,121 @@ init_session_state()
 
 def render_sidebar() -> bool:
     with st.sidebar:
-        st.markdown("## PANOPTICON")
-        st.markdown("##### DARK KNIGHT INTELLIGENCE SYSTEM")
-        st.markdown("---")
+        st.markdown(
+            '<div style="text-align:center;padding:8px 0">'
+            '<span style="color:var(--accent);font-size:1.1rem;font-weight:700;'
+            'letter-spacing:0.15em">PANOPTICON</span><br>'
+            '<span style="color:var(--text-dim);font-size:0.65rem;letter-spacing:0.1em">'
+            'DARK KNIGHT INTELLIGENCE</span></div>',
+            unsafe_allow_html=True,
+        )
 
         # Activation gate
         if not st.session_state.activated:
-            st.markdown("### SYSTEM LOCKED")
+            st.markdown("---")
             phrase = st.text_input(
-                "Activation phrase:", type="password", key="activation_phrase",
+                "Activation phrase", type="password", key="activation_phrase",
+                placeholder="enter phrase",
             )
-            if st.button("ACTIVATE", type="primary"):
+            if st.button("ACTIVATE", type="primary", use_container_width=True):
                 protocol: EthicalProtocol = st.session_state.protocol
                 if protocol.activate(phrase):
                     st.session_state.activated = True
-                    # Initialize live feed state + multi-source scheduler
                     lf = LiveFeedState()
                     init_scheduler(lf)
                     st.session_state.live_feed = lf
                     st.session_state.first_run_done = False
                     st.rerun()
                 else:
-                    st.error("Activation denied. Incorrect phrase.")
-            st.markdown("---")
+                    st.error("Denied.")
             st.markdown(
-                '<p style="color:#4da6ff;font-family:Courier New;font-size:0.85em">'
-                'Hint: "activate contingency"</p>',
+                '<p style="color:var(--text-dim);font-size:0.7rem;text-align:center;'
+                'margin-top:12px">hint: activate contingency</p>',
                 unsafe_allow_html=True,
             )
             return False
 
-        # Session info
+        # --- Source status chip ---
         protocol: EthicalProtocol = st.session_state.protocol
         remaining = protocol.session_remaining_minutes()
-        st.markdown(f"**Session:** {remaining:.0f} min remaining")
-        st.markdown("---")
+        lf_check = st.session_state.live_feed
 
-        # --- Data Source ---
-        st.markdown("### DATA SOURCE")
+        source_count = 0
+        if lf_check and lf_check.scheduler and hasattr(lf_check.scheduler, 'get_health_summary'):
+            summary = lf_check.scheduler.get_health_summary()
+            source_count = summary.get("total_sources", 0)
+            healthy = summary.get("healthy", 0)
+
+        st.markdown(
+            f'<div class="kevlar-bar" style="text-align:center">'
+            f'<span class="kevlar-success">&#9679;</span> '
+            f'<span class="kevlar-accent">{source_count}</span> sources &middot; '
+            f'<span class="kevlar-dim">{remaining:.0f}m left</span>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+
+        # --- Mode selector ---
         feed_mode = st.radio(
-            "Mode:",
-            ["Live Multi-Source", "Synthetic Scenario"],
+            "mode",
+            ["LIVE", "SIM"],
             index=0 if st.session_state.feed_mode == "live" else 1,
             horizontal=True,
             key="feed_mode_radio",
+            label_visibility="collapsed",
         )
-        st.session_state.feed_mode = "live" if feed_mode == "Live Multi-Source" else "synthetic"
+        st.session_state.feed_mode = "live" if feed_mode == "LIVE" else "synthetic"
 
         if st.session_state.feed_mode == "live":
             refresh = st.slider(
-                "Refresh interval (s)", 30, 300, 60, step=30,
+                "refresh (s)", 30, 300, 60, step=30,
                 key="refresh_interval_slider",
+                label_visibility="collapsed",
             )
             st.session_state.refresh_interval = refresh
-
-            # Show scheduler status
-            lf_check = st.session_state.live_feed
-            if lf_check and lf_check.scheduler and hasattr(lf_check.scheduler, 'get_health_summary'):
-                summary = lf_check.scheduler.get_health_summary()
-                st.markdown(
-                    f'<p style="color:#44ff44;font-family:Courier New;font-size:0.8em">'
-                    f'Multi-source polling active. '
-                    f'{summary.get("healthy", 0)}/{summary.get("total_sources", 0)} sources healthy. '
-                    f'Round-robin across {len(DEFAULT_WATCH_ZONES)} watch zones.</p>',
-                    unsafe_allow_html=True,
-                )
-            else:
-                st.markdown(
-                    '<p style="color:#ffaa00;font-family:Courier New;font-size:0.8em">'
-                    'FIRMS-only fallback mode. Install pyyaml to enable multi-source.</p>',
-                    unsafe_allow_html=True,
-                )
-
-            api_key = st.text_input(
-                "FIRMS API Key:",
-                value=st.session_state.live_feed.firms_api_key if st.session_state.live_feed else "DEMO_KEY",
-                key="firms_key_input",
-                help="Get free key: firms.modaps.eosdis.nasa.gov/api/map_key",
-            )
             if st.session_state.live_feed:
-                st.session_state.live_feed.firms_api_key = api_key
                 st.session_state.live_feed.refresh_interval_s = refresh
 
-            if st.button("FORCE POLL NOW", type="secondary"):
-                _force_live_poll()
-
-            # Synthetic overlay toggle
-            if st.checkbox("Overlay synthetic scenario", value=False, key="overlay_synthetic"):
-                merge_synthetic(st.session_state.live_feed, "dubai")
-                run_full_pipeline(
-                    st.session_state.live_feed,
-                    weights=_get_weights(),
-                    sluice=_get_sluice(),
-                    threading=_get_threading(),
-                )
-                _sync_to_session()
-
-            # Source management expander
-            with st.expander("Source Management", expanded=False):
-                render_source_health_panel(st.session_state.live_feed)
+            col_a, col_b = st.columns(2)
+            with col_a:
+                if st.button("POLL NOW", use_container_width=True):
+                    _force_live_poll()
+            with col_b:
+                if st.button("+ SYNTH", use_container_width=True):
+                    merge_synthetic(st.session_state.live_feed, "dubai")
+                    run_full_pipeline(
+                        st.session_state.live_feed,
+                        weights=_get_weights(),
+                        sluice=_get_sluice(),
+                        threading=_get_threading(),
+                    )
+                    _sync_to_session()
 
         else:
             scenario = st.selectbox(
-                "Scenario:",
+                "scenario",
                 ["Dubai Strike", "Taiwan Strait"],
                 key="scenario_select",
+                label_visibility="collapsed",
             )
             st.session_state.synthetic_scenario = scenario
-
-            if st.button("RUN ANALYSIS", type="primary"):
+            if st.button("RUN", type="primary", use_container_width=True):
                 _run_synthetic_analysis(scenario)
 
+        # --- Propagation tuning (collapsed) ---
+        with st.expander("Propagation", expanded=False):
+            st.slider("Intensity", 0.0, 1.0, 0.35, key="w_intensity")
+            st.slider("Proximity", 0.0, 1.0, 0.30, key="w_proximity")
+            st.slider("Persistence", 0.0, 1.0, 0.25, key="w_persistence")
+            st.slider("Gate", 0.0, 1.0, 0.45, key="base_gate")
+            st.slider("Beam K", 5, 50, 20, key="top_k")
+            st.slider("Depth", 2, 12, 8, key="max_depth")
+
+        # --- Session controls ---
         st.markdown("---")
-
-        # --- Propagation Controls ---
-        st.markdown("### PROPAGATION")
-        st.slider("Weight: Intensity", 0.0, 1.0, 0.35, key="w_intensity")
-        st.slider("Weight: Proximity", 0.0, 1.0, 0.30, key="w_proximity")
-        st.slider("Weight: Persistence", 0.0, 1.0, 0.25, key="w_persistence")
-        st.slider("Sluice: Base Gate", 0.0, 1.0, 0.45, key="base_gate")
-        st.slider("Beam Width (top-K)", 5, 50, 20, key="top_k")
-        st.slider("Max Depth", 2, 12, 8, key="max_depth")
-
-        st.markdown("---")
-
-        # --- Controls ---
         col1, col2 = st.columns(2)
         with col1:
-            if st.button("SELF-DESTRUCT", type="secondary"):
+            if st.button("WIPE", use_container_width=True):
                 protocol.self_destruct("destroy")
                 for key in ["activated", "graph", "threads", "report", "seeds",
                              "live_feed", "first_run_done"]:
@@ -265,7 +389,7 @@ def render_sidebar() -> bool:
                 st.session_state.feed_mode = "live"
                 st.rerun()
         with col2:
-            if st.button("Deactivate"):
+            if st.button("EXIT", use_container_width=True):
                 protocol.deactivate()
                 st.session_state.activated = False
                 st.rerun()
@@ -409,7 +533,7 @@ def _handle_live_tick() -> None:
 
 def render_sonar_view(graph: Optional[TemporalGraph], threads: List[FutureThread]):
     if not graph or graph.node_count == 0:
-        st.info("No propagation data. Run analysis first.")
+        st.markdown('<div class="kevlar-card kevlar-dim">No propagation data.</div>', unsafe_allow_html=True)
         return
 
     fig = go.Figure()
@@ -423,7 +547,7 @@ def render_sonar_view(graph: Optional[TemporalGraph], threads: List[FutureThread
         r = (d + 1) * 1.0
         fig.add_trace(go.Scatter(
             x=(r * np.cos(theta)).tolist(), y=(r * np.sin(theta)).tolist(),
-            mode="lines", line=dict(color="rgba(77,166,255,0.15)", width=1),
+            mode="lines", line=dict(color="rgba(0,212,255,0.1)", width=1),
             showlegend=False, hoverinfo="skip",
         ))
 
@@ -450,7 +574,7 @@ def render_sonar_view(graph: Optional[TemporalGraph], threads: List[FutureThread
         momentum = graph.get_chain_momentum(node_id)
         node_text.append(f"{seed.label}<br>p={momentum:.2f} d={seed.depth}")
         from panopticon.dashboard.map_view import EVENT_TYPE_COLORS as _ETC
-        node_color.append(_ETC.get(seed.event_type.value, "#4da6ff"))
+        node_color.append(_ETC.get(seed.event_type.value, "#00d4ff"))
         node_size.append(8 + momentum * 20)
 
     for u, v, data in graph.G.edges(data=True):
@@ -462,31 +586,30 @@ def render_sonar_view(graph: Optional[TemporalGraph], threads: List[FutureThread
 
     fig.add_trace(go.Scatter(
         x=edge_x, y=edge_y, mode="lines",
-        line=dict(color="rgba(77,166,255,0.3)", width=1),
+        line=dict(color="rgba(0,212,255,0.2)", width=1),
         showlegend=False, hoverinfo="skip",
     ))
     fig.add_trace(go.Scatter(
         x=node_x, y=node_y, mode="markers",
         marker=dict(size=node_size, color=node_color,
-                     line=dict(color="rgba(255,255,255,0.5)", width=1)),
+                     line=dict(color="rgba(200,214,229,0.3)", width=0.5)),
         text=node_text, hoverinfo="text", showlegend=False,
     ))
     fig.add_trace(go.Scatter(
         x=[0], y=[0], mode="markers+text",
-        marker=dict(size=16, color="#4da6ff", symbol="diamond"),
+        marker=dict(size=14, color="#00d4ff", symbol="diamond"),
         text=["NOW"], textposition="top center",
-        textfont=dict(color="#4da6ff", size=12), showlegend=False,
+        textfont=dict(color="#00d4ff", size=11, family="JetBrains Mono"),
+        showlegend=False,
     ))
 
     fig.update_layout(
-        plot_bgcolor="#0a0a0a", paper_bgcolor="#0a0a0a",
-        font=dict(color="#e0e0e0", family="Courier New"),
-        title=dict(text="SONAR — CAUSAL PROPAGATION FIELD",
-                    font=dict(color="#4da6ff", size=16)),
+        plot_bgcolor="#06080c", paper_bgcolor="#06080c",
+        font=dict(color="#c8d6e5", family="JetBrains Mono, Courier New"),
         xaxis=dict(showgrid=False, zeroline=False, showticklabels=False,
                     scaleanchor="y", scaleratio=1),
         yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-        height=450, margin=dict(l=20, r=20, t=50, b=20),
+        height=420, margin=dict(l=10, r=10, t=10, b=10),
     )
     st.plotly_chart(fig, use_container_width=True)
 
@@ -497,7 +620,7 @@ def render_sonar_view(graph: Optional[TemporalGraph], threads: List[FutureThread
 
 def render_momentum_timeline(graph: Optional[TemporalGraph]):
     if not graph or graph.node_count == 0:
-        st.info("No propagation data.")
+        st.markdown('<div class="kevlar-card kevlar-dim">No propagation data.</div>', unsafe_allow_html=True)
         return
 
     times, momenta, labels, colors = [], [], [], []
@@ -510,26 +633,24 @@ def render_momentum_timeline(graph: Optional[TemporalGraph]):
         momenta.append(momentum)
         labels.append(seed.label)
         intensity = min(1.0, momentum * 2)
-        r = int(77 + intensity * 178)
-        g = int(166 - intensity * 166)
+        r = int(0 + intensity * 255)
+        g = int(212 - intensity * 160)
         b = int(255 - intensity * 200)
         colors.append(f"rgb({r},{g},{b})")
 
     fig = go.Figure()
     fig.add_trace(go.Scatter(
         x=times, y=momenta, mode="markers+lines",
-        marker=dict(size=8, color=colors, line=dict(width=1, color="white")),
-        line=dict(color="rgba(77,166,255,0.3)", width=1),
+        marker=dict(size=6, color=colors, line=dict(width=0.5, color="rgba(200,214,229,0.3)")),
+        line=dict(color="rgba(0,212,255,0.2)", width=1),
         text=labels, hoverinfo="text+y",
     ))
     fig.update_layout(
-        plot_bgcolor="#0a0a0a", paper_bgcolor="#0a0a0a",
-        font=dict(color="#e0e0e0", family="Courier New"),
-        title=dict(text="CHAIN MOMENTUM TIMELINE",
-                    font=dict(color="#4da6ff", size=16)),
-        xaxis=dict(title="Time (UTC)", gridcolor="#1a1a1a", showgrid=True),
-        yaxis=dict(title="Momentum", gridcolor="#1a1a1a", showgrid=True, range=[0, 1]),
-        height=300, margin=dict(l=50, r=20, t=50, b=50),
+        plot_bgcolor="#06080c", paper_bgcolor="#06080c",
+        font=dict(color="#5a6a7a", family="JetBrains Mono, Courier New", size=10),
+        xaxis=dict(gridcolor="#111820", showgrid=True, linecolor="#1a2535"),
+        yaxis=dict(gridcolor="#111820", showgrid=True, range=[0, 1], linecolor="#1a2535"),
+        height=280, margin=dict(l=40, r=10, t=10, b=40),
     )
     st.plotly_chart(fig, use_container_width=True)
 
@@ -550,13 +671,22 @@ def main():
     active = render_sidebar()
 
     if not active:
-        # Locked screen
-        st.markdown("# PANOPTICON DARK KNIGHT")
-        st.markdown("### System locked. Enter activation phrase in sidebar.")
+        # Locked screen — minimal, clean
+        st.markdown("")  # spacer
         st.markdown(
-            '<div class="warning-banner">'
-            "This is a contingency tool.\nPower like this demands restraint."
-            "\n\n— Lucius Fox</div>",
+            '<div style="text-align:center;padding:80px 20px">'
+            '<div style="font-size:2rem;font-weight:700;color:var(--accent);'
+            'letter-spacing:0.2em;font-family:var(--mono)">PANOPTICON</div>'
+            '<div style="font-size:0.75rem;color:var(--text-dim);letter-spacing:0.15em;'
+            'margin-top:4px">DARK KNIGHT INTELLIGENCE SYSTEM</div>'
+            '<div style="margin-top:40px;color:var(--text-dim);font-size:0.8rem;'
+            'font-family:var(--mono)">'
+            'Open sidebar to activate &middot; 107 sources &middot; zero keys'
+            '</div>'
+            '<div style="margin-top:30px;padding:16px;color:var(--text-dim);'
+            'font-size:0.72rem;font-style:italic;font-family:var(--mono)">'
+            '"Power like this demands restraint." &mdash; Lucius Fox'
+            '</div></div>',
             unsafe_allow_html=True,
         )
         return
@@ -573,22 +703,9 @@ def main():
     if st.session_state.feed_mode == "live":
         _handle_live_tick()
 
-    # --- Warning banner ---
-    st.markdown(
-        '<div class="warning-banner">'
-        "CONTINGENCY MODE ACTIVE — Session is ephemeral. "
-        "No individuals tracked. Only aggregate observables.</div>",
-        unsafe_allow_html=True,
-    )
-
-    # --- Status bar ---
+    # --- Top bar: status + alerts ---
     render_status_bar(st.session_state.live_feed, st.session_state.feed_mode)
-
-    # --- Alerts ---
     render_alert_banner(st.session_state.report)
-
-    # --- Title + Metrics ---
-    st.markdown("# PANOPTICON DARK KNIGHT")
 
     graph = st.session_state.graph
     threads = st.session_state.threads
@@ -596,9 +713,10 @@ def main():
     seeds = st.session_state.seeds
     lf = st.session_state.live_feed
 
+    # --- Metrics row ---
     render_metrics_row(seeds, graph, threads, report, lf)
 
-    # --- Interactive Satellite Map ---
+    # --- Hero map ---
     observables = lf.all_observables if lf else []
 
     if seeds or observables:
@@ -609,38 +727,32 @@ def main():
         )
         st_folium(
             fmap,
-            width=None,  # full width
-            height=550,
+            width=None,
+            height=620,
             key="panopticon_map",
             returned_objects=[],
         )
     else:
         st.markdown(
-            '<div style="background:#111;border:1px solid #1a3a5c;'
-            'border-radius:6px;padding:40px;text-align:center;'
-            'font-family:Courier New;color:#4da6ff;font-size:1.1em">'
-            'Satellite map will appear here after first data ingestion.<br>'
-            '<span style="color:#666">Select Live FIRMS or run a synthetic scenario.</span>'
+            '<div style="background:var(--bg2);border:1px solid var(--border);'
+            'border-radius:4px;padding:60px;text-align:center;'
+            'font-family:var(--mono);color:var(--text-dim);font-size:0.85rem">'
+            'Awaiting first data ingestion &mdash; map renders here.'
             '</div>',
             unsafe_allow_html=True,
         )
 
-    # --- Bottom split: Insights + Feed Log ---
-    col_left, col_right = st.columns([3, 2])
-
-    with col_left:
-        st.markdown("### INTELLIGENCE INSIGHTS")
-        render_insight_cards(report)
-
-    with col_right:
-        st.markdown("### FEED LOG")
-        render_feed_log(lf)
-
-    # --- Tabs: Sonar, Timeline, Source Health, Raw Data ---
-    st.markdown("---")
-    tab_sonar, tab_timeline, tab_health, tab_raw = st.tabs([
-        "SONAR VIEW", "TIMELINE", "SOURCE HEALTH", "RAW DATA",
+    # --- Tabbed panels ---
+    tab_intel, tab_sonar, tab_timeline, tab_sources, tab_raw = st.tabs([
+        "INTEL", "SONAR", "TIMELINE", "SOURCES", "RAW",
     ])
+
+    with tab_intel:
+        col_left, col_right = st.columns([3, 2])
+        with col_left:
+            render_insight_cards(report)
+        with col_right:
+            render_feed_log(lf)
 
     with tab_sonar:
         render_sonar_view(graph, threads)
@@ -648,39 +760,24 @@ def main():
     with tab_timeline:
         render_momentum_timeline(graph)
 
-    with tab_health:
-        st.markdown("### MULTI-SOURCE INTELLIGENCE FEED HEALTH")
+    with tab_sources:
         render_source_health_panel(lf)
 
     with tab_raw:
-        st.markdown("### Graph Summary")
         if graph:
             st.json(graph.summary())
-        else:
-            st.info("No graph data.")
-
         if report:
-            st.markdown("### Oracle Report (Raw)")
             st.code(format_report_text(report), language="text")
-
-        st.markdown("### Event Seeds")
         if seeds:
-            for seed in seeds:
+            for seed in seeds[:20]:
                 with st.expander(f"{seed.label} (conf={seed.confidence:.2f})"):
                     st.write({
-                        "event_id": seed.event_id,
                         "type": seed.event_type.value,
-                        "lat": seed.lat,
-                        "lon": seed.lon,
-                        "timestamp": seed.timestamp.isoformat(),
+                        "lat": seed.lat, "lon": seed.lon,
                         "intensity": round(seed.intensity, 3),
                         "confidence": round(seed.confidence, 3),
-                        "nearest_critical": seed.nearest_critical[2] if seed.nearest_critical else None,
-                        "proximity": round(seed.proximity_to_critical, 3),
                         "cluster_size": seed.metadata.get("cluster_size", 0),
                     })
-        else:
-            st.info("No event seeds.")
 
 
 if __name__ == "__main__":

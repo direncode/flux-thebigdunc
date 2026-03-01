@@ -123,9 +123,9 @@ CRITICAL_NODE_ICONS: Dict[str, Tuple[str, str]] = {
 PULSE_CSS = """
 <style>
 @keyframes panopticon-pulse {
-    0%   { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.7); }
-    70%  { box-shadow: 0 0 0 18px rgba(255, 68, 68, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0); }
+    0%   { box-shadow: 0 0 0 0 rgba(0, 212, 255, 0.6); }
+    70%  { box-shadow: 0 0 0 16px rgba(0, 212, 255, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(0, 212, 255, 0); }
 }
 .pulse-marker {
     animation: panopticon-pulse 1.5s infinite;
@@ -134,11 +134,11 @@ PULSE_CSS = """
 </style>
 """
 
-# Popup HTML template (Dark Knight palette)
+# Popup HTML template (Kevlar palette)
 POPUP_STYLE = (
-    "background:#111;color:#e0e0e0;font-family:'Courier New',monospace;"
-    "padding:10px;min-width:220px;border:1px solid #1a3a5c;border-radius:4px;"
-    "font-size:12px;line-height:1.5"
+    "background:#0c1018;color:#c8d6e5;font-family:'JetBrains Mono','Courier New',monospace;"
+    "padding:10px;min-width:200px;border:1px solid #1a2535;border-radius:3px;"
+    "font-size:11px;line-height:1.5"
 )
 
 

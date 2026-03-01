@@ -5,6 +5,7 @@ Polls any REST API described by a SourceConfig — no source-specific Python nee
 
 from __future__ import annotations
 
+import email.utils
 import logging
 import re
 from datetime import datetime, timedelta, timezone
@@ -55,6 +56,15 @@ def _parse_timestamp(raw: Any, fmt: str) -> Optional[datetime]:
             except ValueError:
                 continue
         return None
+
+    if fmt == "rfc2822":
+        try:
+            parsed = email.utils.parsedate_to_datetime(str(raw))
+            if parsed.tzinfo is None:
+                parsed = parsed.replace(tzinfo=timezone.utc)
+            return parsed
+        except (ValueError, TypeError):
+            return None
 
     if fmt.startswith("strftime:"):
         pattern = fmt[len("strftime:"):]

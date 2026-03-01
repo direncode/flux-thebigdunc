@@ -1,16 +1,402 @@
 # =============================================================================
-# PANOPTICON DARK KNIGHT — SOURCE CATALOG
+# PANOPTICON DARK KNIGHT — SOURCE CATALOG v2
 # =============================================================================
-# Declarative multi-domain intelligence source definitions.
-# Add a source = add YAML. No Python required.
+# 100+ free intelligence sources. Zero API keys. Zero signup.
+# GDELT backbone for OSINT / social / X intelligence.
 #
-# "Power like this demands restraint."
+# "The sonar gives you a picture of the whole city."
 # =============================================================================
 
 sources:
 
   # ===========================================================================
-  # FIRE / THERMAL (existing — legacy ingestor)
+  # OSINT / SOCIAL INTELLIGENCE (GDELT)
+  # ===========================================================================
+  # GDELT processes global news, social media (including X/Twitter),
+  # broadcast TV in 65 languages. This is your OSINT backbone.
+
+  - id: gdelt_geo_conflict
+    name: "GDELT Conflict Intelligence"
+    category: osint
+    enabled: true
+    priority: 1
+    base_url: "https://api.gdeltproject.org/api/v2/geo/geo"
+    auth_type: none
+    poll_interval_seconds: 300
+    rate_limit_per_minute: 20
+    timeout_seconds: 30
+    method: GET
+    params:
+      query: "conflict OR attack OR strike OR bombing OR shelling"
+      format: GeoJSON
+      mode: PointData
+      timespan: 60min
+    response_format: geojson
+    results_path: features
+    field_mapping:
+      lat: "geometry.coordinates[1]"
+      lon: "geometry.coordinates[0]"
+      timestamp: "properties.urlpubtimedate"
+      timestamp_format: iso8601
+      confidence: "_static:0.65"
+    observable_type: armed_conflict
+    extra_fields:
+      url: "properties.url"
+      name: "properties.name"
+      shareimage: "properties.shareimage"
+      tone: "properties.tone"
+
+  - id: gdelt_geo_protest
+    name: "GDELT Protest & Unrest"
+    category: osint
+    enabled: true
+    priority: 1
+    base_url: "https://api.gdeltproject.org/api/v2/geo/geo"
+    auth_type: none
+    poll_interval_seconds: 300
+    rate_limit_per_minute: 20
+    timeout_seconds: 30
+    method: GET
+    params:
+      query: "protest OR demonstration OR riot OR unrest OR uprising"
+      format: GeoJSON
+      mode: PointData
+      timespan: 60min
+    response_format: geojson
+    results_path: features
+    field_mapping:
+      lat: "geometry.coordinates[1]"
+      lon: "geometry.coordinates[0]"
+      timestamp: "properties.urlpubtimedate"
+      timestamp_format: iso8601
+      confidence: "_static:0.6"
+    observable_type: protest
+    extra_fields:
+      url: "properties.url"
+      name: "properties.name"
+      tone: "properties.tone"
+
+  - id: gdelt_geo_disaster
+    name: "GDELT Natural Disaster"
+    category: osint
+    enabled: true
+    priority: 1
+    base_url: "https://api.gdeltproject.org/api/v2/geo/geo"
+    auth_type: none
+    poll_interval_seconds: 300
+    rate_limit_per_minute: 20
+    timeout_seconds: 30
+    method: GET
+    params:
+      query: "earthquake OR tsunami OR hurricane OR typhoon OR cyclone OR tornado"
+      format: GeoJSON
+      mode: PointData
+      timespan: 60min
+    response_format: geojson
+    results_path: features
+    field_mapping:
+      lat: "geometry.coordinates[1]"
+      lon: "geometry.coordinates[0]"
+      timestamp: "properties.urlpubtimedate"
+      timestamp_format: iso8601
+      confidence: "_static:0.55"
+    observable_type: weather_alert
+    extra_fields:
+      url: "properties.url"
+      name: "properties.name"
+
+  - id: gdelt_geo_terror
+    name: "GDELT Terrorism & Extremism"
+    category: osint
+    enabled: true
+    priority: 1
+    base_url: "https://api.gdeltproject.org/api/v2/geo/geo"
+    auth_type: none
+    poll_interval_seconds: 300
+    rate_limit_per_minute: 20
+    timeout_seconds: 30
+    method: GET
+    params:
+      query: "terrorism OR militant OR extremist OR insurgent OR IED"
+      format: GeoJSON
+      mode: PointData
+      timespan: 60min
+    response_format: geojson
+    results_path: features
+    field_mapping:
+      lat: "geometry.coordinates[1]"
+      lon: "geometry.coordinates[0]"
+      timestamp: "properties.urlpubtimedate"
+      timestamp_format: iso8601
+      confidence: "_static:0.6"
+    observable_type: armed_conflict
+    extra_fields:
+      url: "properties.url"
+      name: "properties.name"
+
+  - id: gdelt_geo_military
+    name: "GDELT Military Movements"
+    category: osint
+    enabled: true
+    priority: 1
+    base_url: "https://api.gdeltproject.org/api/v2/geo/geo"
+    auth_type: none
+    poll_interval_seconds: 300
+    rate_limit_per_minute: 20
+    timeout_seconds: 30
+    method: GET
+    params:
+      query: "military deployment OR naval OR troops OR airstrike OR drone strike"
+      format: GeoJSON
+      mode: PointData
+      timespan: 60min
+    response_format: geojson
+    results_path: features
+    field_mapping:
+      lat: "geometry.coordinates[1]"
+      lon: "geometry.coordinates[0]"
+      timestamp: "properties.urlpubtimedate"
+      timestamp_format: iso8601
+      confidence: "_static:0.6"
+    observable_type: armed_conflict
+    extra_fields:
+      url: "properties.url"
+      name: "properties.name"
+
+  - id: gdelt_geo_cyber
+    name: "GDELT Cyber Intelligence"
+    category: osint
+    enabled: true
+    priority: 1
+    base_url: "https://api.gdeltproject.org/api/v2/geo/geo"
+    auth_type: none
+    poll_interval_seconds: 600
+    rate_limit_per_minute: 20
+    timeout_seconds: 30
+    method: GET
+    params:
+      query: "cyberattack OR ransomware OR data breach OR hacking OR APT"
+      format: GeoJSON
+      mode: PointData
+      timespan: 120min
+    response_format: geojson
+    results_path: features
+    field_mapping:
+      lat: "geometry.coordinates[1]"
+      lon: "geometry.coordinates[0]"
+      timestamp: "properties.urlpubtimedate"
+      timestamp_format: iso8601
+      confidence: "_static:0.55"
+    observable_type: cyber_threat
+    extra_fields:
+      url: "properties.url"
+      name: "properties.name"
+
+  - id: gdelt_geo_sanctions
+    name: "GDELT Sanctions & Diplomacy"
+    category: osint
+    enabled: true
+    priority: 2
+    base_url: "https://api.gdeltproject.org/api/v2/geo/geo"
+    auth_type: none
+    poll_interval_seconds: 900
+    rate_limit_per_minute: 20
+    timeout_seconds: 30
+    method: GET
+    params:
+      query: "sanctions OR embargo OR diplomatic expulsion OR treaty withdrawal"
+      format: GeoJSON
+      mode: PointData
+      timespan: 240min
+    response_format: geojson
+    results_path: features
+    field_mapping:
+      lat: "geometry.coordinates[1]"
+      lon: "geometry.coordinates[0]"
+      timestamp: "properties.urlpubtimedate"
+      timestamp_format: iso8601
+      confidence: "_static:0.55"
+    observable_type: sanctions_change
+    extra_fields:
+      url: "properties.url"
+      name: "properties.name"
+
+  - id: gdelt_geo_epidemic
+    name: "GDELT Epidemic & Health"
+    category: osint
+    enabled: true
+    priority: 2
+    base_url: "https://api.gdeltproject.org/api/v2/geo/geo"
+    auth_type: none
+    poll_interval_seconds: 900
+    rate_limit_per_minute: 20
+    timeout_seconds: 30
+    method: GET
+    params:
+      query: "epidemic OR pandemic OR outbreak OR disease spread OR quarantine"
+      format: GeoJSON
+      mode: PointData
+      timespan: 240min
+    response_format: geojson
+    results_path: features
+    field_mapping:
+      lat: "geometry.coordinates[1]"
+      lon: "geometry.coordinates[0]"
+      timestamp: "properties.urlpubtimedate"
+      timestamp_format: iso8601
+      confidence: "_static:0.55"
+    observable_type: disease_outbreak
+    extra_fields:
+      url: "properties.url"
+      name: "properties.name"
+
+  - id: gdelt_geo_supply_chain
+    name: "GDELT Supply Chain Disruption"
+    category: osint
+    enabled: true
+    priority: 2
+    base_url: "https://api.gdeltproject.org/api/v2/geo/geo"
+    auth_type: none
+    poll_interval_seconds: 900
+    rate_limit_per_minute: 20
+    timeout_seconds: 30
+    method: GET
+    params:
+      query: "supply chain disruption OR port closure OR shipping blockade OR trade war"
+      format: GeoJSON
+      mode: PointData
+      timespan: 240min
+    response_format: geojson
+    results_path: features
+    field_mapping:
+      lat: "geometry.coordinates[1]"
+      lon: "geometry.coordinates[0]"
+      timestamp: "properties.urlpubtimedate"
+      timestamp_format: iso8601
+      confidence: "_static:0.55"
+    observable_type: economic_indicator
+    extra_fields:
+      url: "properties.url"
+      name: "properties.name"
+
+  - id: gdelt_geo_climate
+    name: "GDELT Climate & Environment"
+    category: osint
+    enabled: true
+    priority: 2
+    base_url: "https://api.gdeltproject.org/api/v2/geo/geo"
+    auth_type: none
+    poll_interval_seconds: 900
+    rate_limit_per_minute: 20
+    timeout_seconds: 30
+    method: GET
+    params:
+      query: "wildfire OR drought OR flood OR climate crisis OR deforestation"
+      format: GeoJSON
+      mode: PointData
+      timespan: 240min
+    response_format: geojson
+    results_path: features
+    field_mapping:
+      lat: "geometry.coordinates[1]"
+      lon: "geometry.coordinates[0]"
+      timestamp: "properties.urlpubtimedate"
+      timestamp_format: iso8601
+      confidence: "_static:0.55"
+    observable_type: generic
+    extra_fields:
+      url: "properties.url"
+      name: "properties.name"
+
+  - id: gdelt_geo_refugee
+    name: "GDELT Refugee & Migration"
+    category: osint
+    enabled: true
+    priority: 2
+    base_url: "https://api.gdeltproject.org/api/v2/geo/geo"
+    auth_type: none
+    poll_interval_seconds: 900
+    rate_limit_per_minute: 20
+    timeout_seconds: 30
+    method: GET
+    params:
+      query: "refugee crisis OR mass migration OR displacement OR humanitarian corridor"
+      format: GeoJSON
+      mode: PointData
+      timespan: 240min
+    response_format: geojson
+    results_path: features
+    field_mapping:
+      lat: "geometry.coordinates[1]"
+      lon: "geometry.coordinates[0]"
+      timestamp: "properties.urlpubtimedate"
+      timestamp_format: iso8601
+      confidence: "_static:0.55"
+    observable_type: displacement
+    extra_fields:
+      url: "properties.url"
+      name: "properties.name"
+
+  - id: gdelt_geo_nuclear
+    name: "GDELT Nuclear Threat"
+    category: osint
+    enabled: true
+    priority: 1
+    base_url: "https://api.gdeltproject.org/api/v2/geo/geo"
+    auth_type: none
+    poll_interval_seconds: 600
+    rate_limit_per_minute: 20
+    timeout_seconds: 30
+    method: GET
+    params:
+      query: "nuclear weapon OR nuclear test OR ICBM OR nuclear threat OR enrichment"
+      format: GeoJSON
+      mode: PointData
+      timespan: 120min
+    response_format: geojson
+    results_path: features
+    field_mapping:
+      lat: "geometry.coordinates[1]"
+      lon: "geometry.coordinates[0]"
+      timestamp: "properties.urlpubtimedate"
+      timestamp_format: iso8601
+      confidence: "_static:0.6"
+    observable_type: armed_conflict
+    extra_fields:
+      url: "properties.url"
+      name: "properties.name"
+
+  - id: gdelt_geo_maritime
+    name: "GDELT Maritime Intelligence"
+    category: osint
+    enabled: true
+    priority: 2
+    base_url: "https://api.gdeltproject.org/api/v2/geo/geo"
+    auth_type: none
+    poll_interval_seconds: 900
+    rate_limit_per_minute: 20
+    timeout_seconds: 30
+    method: GET
+    params:
+      query: "naval blockade OR piracy OR maritime incident OR ship seizure OR strait closure"
+      format: GeoJSON
+      mode: PointData
+      timespan: 240min
+    response_format: geojson
+    results_path: features
+    field_mapping:
+      lat: "geometry.coordinates[1]"
+      lon: "geometry.coordinates[0]"
+      timestamp: "properties.urlpubtimedate"
+      timestamp_format: iso8601
+      confidence: "_static:0.55"
+    observable_type: vessel_tracking
+    extra_fields:
+      url: "properties.url"
+      name: "properties.name"
+
+  # ===========================================================================
+  # FIRE / THERMAL
   # ===========================================================================
 
   - id: firms_viirs
@@ -21,38 +407,141 @@ sources:
     ingestor_class: "panopticon.ingest.firms.FIRMSIngestor"
     poll_interval_seconds: 120
     rate_limit_per_minute: 10
-    auth_type: api_key
-    auth_config:
-      key_env_var: FIRMS_API_KEY
-      fallback_key: DEMO_KEY
+    auth_type: none
+
+  - id: nasa_eonet_events
+    name: "NASA EONET Natural Events"
+    category: fire
+    enabled: true
+    priority: 1
+    base_url: "https://eonet.gsfc.nasa.gov/api/v3/events"
+    auth_type: none
+    poll_interval_seconds: 600
+    rate_limit_per_minute: 10
+    timeout_seconds: 30
+    method: GET
+    params:
+      status: open
+      limit: "100"
+      days: "3"
+    response_format: json
+    results_path: events
+    field_mapping:
+      lat: "geometry[0].coordinates[1]"
+      lon: "geometry[0].coordinates[0]"
+      timestamp: "geometry[0].date"
+      timestamp_format: iso8601
+      confidence: "_static:0.85"
+    observable_type: generic
+    extra_fields:
+      title: title
+      event_id: id
+      category: "categories[0].title"
+      source_url: "sources[0].url"
+
+  - id: nasa_eonet_wildfires
+    name: "NASA EONET Wildfires"
+    category: fire
+    enabled: true
+    priority: 1
+    base_url: "https://eonet.gsfc.nasa.gov/api/v3/events"
+    auth_type: none
+    poll_interval_seconds: 600
+    rate_limit_per_minute: 10
+    timeout_seconds: 30
+    method: GET
+    params:
+      status: open
+      category: wildfires
+      limit: "100"
+      days: "3"
+    response_format: json
+    results_path: events
+    field_mapping:
+      lat: "geometry[0].coordinates[1]"
+      lon: "geometry[0].coordinates[0]"
+      timestamp: "geometry[0].date"
+      timestamp_format: iso8601
+      confidence: "_static:0.9"
+    observable_type: thermal_hotspot
+    extra_fields:
+      title: title
+      source_url: "sources[0].url"
+
+  - id: nasa_eonet_volcanoes
+    name: "NASA EONET Volcanoes"
+    category: fire
+    enabled: true
+    priority: 1
+    base_url: "https://eonet.gsfc.nasa.gov/api/v3/events"
+    auth_type: none
+    poll_interval_seconds: 1800
+    rate_limit_per_minute: 10
+    timeout_seconds: 30
+    method: GET
+    params:
+      status: open
+      category: volcanoes
+      limit: "50"
+      days: "7"
+    response_format: json
+    results_path: events
+    field_mapping:
+      lat: "geometry[0].coordinates[1]"
+      lon: "geometry[0].coordinates[0]"
+      timestamp: "geometry[0].date"
+      timestamp_format: iso8601
+      confidence: "_static:0.9"
+    observable_type: volcanic_activity
+    extra_fields:
+      title: title
+      source_url: "sources[0].url"
+
+  - id: nasa_eonet_severe_storms
+    name: "NASA EONET Severe Storms"
+    category: fire
+    enabled: true
+    priority: 1
+    base_url: "https://eonet.gsfc.nasa.gov/api/v3/events"
+    auth_type: none
+    poll_interval_seconds: 600
+    rate_limit_per_minute: 10
+    timeout_seconds: 30
+    method: GET
+    params:
+      status: open
+      category: severeStorms
+      limit: "100"
+      days: "3"
+    response_format: json
+    results_path: events
+    field_mapping:
+      lat: "geometry[0].coordinates[1]"
+      lon: "geometry[0].coordinates[0]"
+      timestamp: "geometry[0].date"
+      timestamp_format: iso8601
+      confidence: "_static:0.85"
+    observable_type: extreme_weather
+    extra_fields:
+      title: title
+      source_url: "sources[0].url"
 
   # ===========================================================================
   # SEISMIC
   # ===========================================================================
 
-  - id: usgs_earthquake
-    name: "USGS Earthquake Hazards"
+  - id: usgs_eq_significant
+    name: "USGS Significant Earthquakes"
     category: seismic
     enabled: true
     priority: 1
-    base_url: "https://earthquake.usgs.gov/fdsnws/event/1/query"
+    base_url: "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_month.geojson"
     auth_type: none
-    poll_interval_seconds: 120
+    poll_interval_seconds: 300
     rate_limit_per_minute: 30
-    timeout_seconds: 30
-    request:
-      method: GET
-      params:
-        format: geojson
-        starttime: "{since_iso}"
-        endtime: "{now_iso}"
-        minlatitude: "{bbox_south}"
-        maxlatitude: "{bbox_north}"
-        minlongitude: "{bbox_west}"
-        maxlongitude: "{bbox_east}"
-        minmagnitude: "2.5"
-        orderby: time
-        limit: "500"
+    timeout_seconds: 15
+    method: GET
+    params: {}
     response_format: geojson
     results_path: features
     field_mapping:
@@ -69,8 +558,124 @@ sources:
       depth_km: "geometry.coordinates[2]"
       place: "properties.place"
       tsunami: "properties.tsunami"
-      felt: "properties.felt"
       alert: "properties.alert"
+
+  - id: usgs_eq_m45
+    name: "USGS M4.5+ Earthquakes"
+    category: seismic
+    enabled: true
+    priority: 1
+    base_url: "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_week.geojson"
+    auth_type: none
+    poll_interval_seconds: 120
+    rate_limit_per_minute: 30
+    timeout_seconds: 15
+    method: GET
+    params: {}
+    response_format: geojson
+    results_path: features
+    field_mapping:
+      lat: "geometry.coordinates[1]"
+      lon: "geometry.coordinates[0]"
+      timestamp: "properties.time"
+      timestamp_format: epoch_ms
+      confidence: "properties.sig"
+      confidence_transform: "divide:1000"
+    observable_type: earthquake
+    extra_fields:
+      magnitude: "properties.mag"
+      place: "properties.place"
+      tsunami: "properties.tsunami"
+
+  - id: usgs_eq_m25
+    name: "USGS M2.5+ Earthquakes"
+    category: seismic
+    enabled: true
+    priority: 2
+    base_url: "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson"
+    auth_type: none
+    poll_interval_seconds: 300
+    rate_limit_per_minute: 30
+    timeout_seconds: 15
+    method: GET
+    params: {}
+    response_format: geojson
+    results_path: features
+    field_mapping:
+      lat: "geometry.coordinates[1]"
+      lon: "geometry.coordinates[0]"
+      timestamp: "properties.time"
+      timestamp_format: epoch_ms
+      confidence: "properties.sig"
+      confidence_transform: "divide:1000"
+    observable_type: earthquake
+    extra_fields:
+      magnitude: "properties.mag"
+      place: "properties.place"
+
+  - id: usgs_eq_all_hour
+    name: "USGS All Earthquakes Past Hour"
+    category: seismic
+    enabled: true
+    priority: 1
+    base_url: "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.geojson"
+    auth_type: none
+    poll_interval_seconds: 60
+    rate_limit_per_minute: 60
+    timeout_seconds: 10
+    method: GET
+    params: {}
+    response_format: geojson
+    results_path: features
+    field_mapping:
+      lat: "geometry.coordinates[1]"
+      lon: "geometry.coordinates[0]"
+      timestamp: "properties.time"
+      timestamp_format: epoch_ms
+      confidence: "_static:0.8"
+    observable_type: earthquake
+    extra_fields:
+      magnitude: "properties.mag"
+      place: "properties.place"
+
+  - id: usgs_eq_query
+    name: "USGS Earthquake FDSN Query"
+    category: seismic
+    enabled: true
+    priority: 1
+    base_url: "https://earthquake.usgs.gov/fdsnws/event/1/query"
+    auth_type: none
+    poll_interval_seconds: 120
+    rate_limit_per_minute: 30
+    timeout_seconds: 30
+    method: GET
+    params:
+      format: geojson
+      starttime: "{since_iso}"
+      endtime: "{now_iso}"
+      minlatitude: "{bbox_south}"
+      maxlatitude: "{bbox_north}"
+      minlongitude: "{bbox_west}"
+      maxlongitude: "{bbox_east}"
+      minmagnitude: "2.5"
+      orderby: time
+      limit: "500"
+    response_format: geojson
+    results_path: features
+    field_mapping:
+      lat: "geometry.coordinates[1]"
+      lon: "geometry.coordinates[0]"
+      timestamp: "properties.time"
+      timestamp_format: epoch_ms
+      confidence: "properties.sig"
+      confidence_transform: "divide:1000"
+    observable_type: earthquake
+    extra_fields:
+      magnitude: "properties.mag"
+      depth_km: "geometry.coordinates[2]"
+      place: "properties.place"
+      tsunami: "properties.tsunami"
+      felt: "properties.felt"
 
   - id: emsc_seismic
     name: "EMSC European Seismology"
@@ -82,18 +687,17 @@ sources:
     poll_interval_seconds: 300
     rate_limit_per_minute: 10
     timeout_seconds: 30
-    request:
-      method: GET
-      params:
-        format: json
-        starttime: "{since_iso}"
-        endtime: "{now_iso}"
-        minlat: "{bbox_south}"
-        maxlat: "{bbox_north}"
-        minlon: "{bbox_west}"
-        maxlon: "{bbox_east}"
-        minmag: "3.0"
-        limit: "200"
+    method: GET
+    params:
+      format: json
+      starttime: "{since_iso}"
+      endtime: "{now_iso}"
+      minlat: "{bbox_south}"
+      maxlat: "{bbox_north}"
+      minlon: "{bbox_west}"
+      maxlon: "{bbox_east}"
+      minmag: "3.0"
+      limit: "200"
     response_format: geojson
     results_path: features
     field_mapping:
@@ -105,8 +709,6 @@ sources:
     observable_type: earthquake
     extra_fields:
       magnitude: "properties.mag"
-      mag_type: "properties.magtype"
-      depth_km: "geometry.coordinates[2]"
       region: "properties.flynn_region"
 
   - id: usgs_volcano
@@ -119,9 +721,8 @@ sources:
     poll_interval_seconds: 1800
     rate_limit_per_minute: 5
     timeout_seconds: 30
-    request:
-      method: GET
-      params: {}
+    method: GET
+    params: {}
     response_format: json
     results_path: ""
     field_mapping:
@@ -136,40 +737,12 @@ sources:
       alert_level: alertLevel
       color_code: colorCode
 
-  - id: smithsonian_gvp
-    name: "Smithsonian Global Volcanism"
-    category: seismic
-    enabled: true
-    priority: 3
-    base_url: "https://volcano.si.edu/api/v1/volcano"
-    auth_type: none
-    poll_interval_seconds: 3600
-    rate_limit_per_minute: 5
-    timeout_seconds: 30
-    request:
-      method: GET
-      params:
-        hasCurrentEruption: "true"
-    response_format: json
-    results_path: items
-    field_mapping:
-      lat: latitude
-      lon: longitude
-      timestamp: "_static:now"
-      timestamp_format: iso8601
-      confidence: "_static:0.85"
-    observable_type: volcanic_activity
-    extra_fields:
-      volcano_name: volcanoName
-      country: country
-      volcano_type: primaryVolcanoType
-
   # ===========================================================================
   # WEATHER / CLIMATE
   # ===========================================================================
 
-  - id: open_meteo
-    name: "Open-Meteo Weather"
+  - id: open_meteo_weather
+    name: "Open-Meteo Current Weather"
     category: weather
     enabled: true
     priority: 2
@@ -178,13 +751,11 @@ sources:
     poll_interval_seconds: 900
     rate_limit_per_minute: 100
     timeout_seconds: 15
-    request:
-      method: GET
-      params:
-        latitude: "{center_lat}"
-        longitude: "{center_lon}"
-        current_weather: "true"
-        hourly: "temperature_2m,windspeed_10m,precipitation"
+    method: GET
+    params:
+      latitude: "{center_lat}"
+      longitude: "{center_lon}"
+      current_weather: "true"
     response_format: json
     results_path: "_singleton"
     field_mapping:
@@ -197,8 +768,92 @@ sources:
     extra_fields:
       temperature_c: "current_weather.temperature"
       windspeed_kmh: "current_weather.windspeed"
-      wind_direction: "current_weather.winddirection"
       weathercode: "current_weather.weathercode"
+
+  - id: open_meteo_marine
+    name: "Open-Meteo Marine Weather"
+    category: weather
+    enabled: true
+    priority: 2
+    base_url: "https://marine-api.open-meteo.com/v1/marine"
+    auth_type: none
+    poll_interval_seconds: 1800
+    rate_limit_per_minute: 100
+    timeout_seconds: 15
+    method: GET
+    params:
+      latitude: "{center_lat}"
+      longitude: "{center_lon}"
+      current: "wave_height,wave_period,wave_direction"
+    response_format: json
+    results_path: "_singleton"
+    field_mapping:
+      lat: "_request.latitude"
+      lon: "_request.longitude"
+      timestamp: "_static:now"
+      timestamp_format: iso8601
+      confidence: "_static:0.9"
+    observable_type: weather_alert
+    extra_fields:
+      wave_height: "current.wave_height"
+      wave_period: "current.wave_period"
+
+  - id: open_meteo_air_quality
+    name: "Open-Meteo Air Quality"
+    category: weather
+    enabled: true
+    priority: 2
+    base_url: "https://air-quality-api.open-meteo.com/v1/air-quality"
+    auth_type: none
+    poll_interval_seconds: 1800
+    rate_limit_per_minute: 100
+    timeout_seconds: 15
+    method: GET
+    params:
+      latitude: "{center_lat}"
+      longitude: "{center_lon}"
+      current: "european_aqi,pm2_5,pm10"
+    response_format: json
+    results_path: "_singleton"
+    field_mapping:
+      lat: "_request.latitude"
+      lon: "_request.longitude"
+      timestamp: "_static:now"
+      timestamp_format: iso8601
+      confidence: "_static:0.9"
+    observable_type: air_quality
+    extra_fields:
+      aqi: "current.european_aqi"
+      pm25: "current.pm2_5"
+      pm10: "current.pm10"
+
+  - id: open_meteo_flood
+    name: "Open-Meteo Flood API"
+    category: flood
+    enabled: true
+    priority: 1
+    base_url: "https://flood-api.open-meteo.com/v1/flood"
+    auth_type: none
+    poll_interval_seconds: 1800
+    rate_limit_per_minute: 100
+    timeout_seconds: 15
+    method: GET
+    params:
+      latitude: "{center_lat}"
+      longitude: "{center_lon}"
+      daily: "river_discharge"
+      forecast_days: "3"
+    response_format: json
+    results_path: "_singleton"
+    field_mapping:
+      lat: "_request.latitude"
+      lon: "_request.longitude"
+      timestamp: "_static:now"
+      timestamp_format: iso8601
+      confidence: "_static:0.85"
+    observable_type: flood_alert
+    extra_fields:
+      river_discharge: "daily.river_discharge"
 
   - id: noaa_nws_alerts
     name: "NOAA NWS Weather Alerts"
@@ -210,12 +865,11 @@ sources:
     poll_interval_seconds: 300
     rate_limit_per_minute: 20
     timeout_seconds: 30
-    request:
-      method: GET
-      params:
-        status: actual
-        message_type: alert
-        limit: "200"
+    method: GET
+    params:
+      status: actual
+      message_type: alert
+      limit: "200"
     response_format: geojson
     results_path: features
     field_mapping:
@@ -229,44 +883,34 @@ sources:
       event: "properties.event"
       severity: "properties.severity"
       certainty: "properties.certainty"
-      urgency: "properties.urgency"
       headline: "properties.headline"
-      area: "properties.areaDesc"
 
-  - id: openweathermap
-    name: "OpenWeatherMap"
+  - id: metno_forecast
+    name: "Met.no Norwegian Meteorological"
     category: weather
-    enabled: false
-    priority: 2
-    base_url: "https://api.openweathermap.org/data/2.5/weather"
-    auth_type: api_key
-    auth_config:
-      key_env_var: OPENWEATHER_API_KEY
-      key_param: appid
-    poll_interval_seconds: 600
-    rate_limit_per_minute: 60
+    enabled: true
+    priority: 3
+    base_url: "https://api.met.no/weatherapi/locationforecast/2.0/compact"
+    auth_type: none
+    poll_interval_seconds: 1800
+    rate_limit_per_minute: 20
     timeout_seconds: 15
-    request:
-      method: GET
-      params:
-        lat: "{center_lat}"
-        lon: "{center_lon}"
-        units: metric
+    method: GET
+    params:
+      lat: "{center_lat}"
+      lon: "{center_lon}"
     response_format: json
     results_path: "_singleton"
     field_mapping:
-      lat: "coord.lat"
-      lon: "coord.lon"
-      timestamp: dt
-      timestamp_format: epoch_s
+      lat: "_request.latitude"
+      lon: "_request.longitude"
+      timestamp: "properties.meta.updated_at"
+      timestamp_format: iso8601
       confidence: "_static:0.9"
     observable_type: weather_alert
     extra_fields:
-      temperature_c: "main.temp"
-      humidity: "main.humidity"
-      pressure: "main.pressure"
-      wind_speed: "wind.speed"
-      description: "weather[0].description"
+      temperature: "properties.timeseries[0].data.instant.details.air_temperature"
+      wind_speed: "properties.timeseries[0].data.instant.details.wind_speed"
 
   # ===========================================================================
   # FLOOD / HYDROLOGY
@@ -282,14 +926,13 @@ sources:
     poll_interval_seconds: 900
     rate_limit_per_minute: 20
     timeout_seconds: 30
-    request:
-      method: GET
-      params:
-        format: json
-        bBox: "{bbox_west},{bbox_south},{bbox_east},{bbox_north}"
-        parameterCd: "00065"
-        siteStatus: active
-        period: PT2H
+    method: GET
+    params:
+      format: json
+      bBox: "{bbox_west},{bbox_south},{bbox_east},{bbox_north}"
+      parameterCd: "00065"
+      siteStatus: active
+      period: PT2H
     response_format: json
     results_path: "value.timeSeries"
     field_mapping:
@@ -302,7 +945,6 @@ sources:
     extra_fields:
       site_name: "sourceInfo.siteName"
       gage_height: "values[0].value[0].value"
-      parameter: "variable.variableDescription"
 
   - id: glofas_flood
     name: "GloFAS Flood Monitoring"
@@ -314,10 +956,9 @@ sources:
     poll_interval_seconds: 1800
     rate_limit_per_minute: 10
     timeout_seconds: 30
-    request:
-      method: GET
-      params:
-        format: json
+    method: GET
+    params:
+      format: json
     response_format: json
     results_path: alerts
     field_mapping:
@@ -331,79 +972,330 @@ sources:
       severity: severity
       river: river_name
       country: country
-      alert_class: alert_class
 
-  # ===========================================================================
-  # ENVIRONMENTAL / AIR QUALITY
-  # ===========================================================================
-
-  - id: waqi_air_quality
-    name: "World Air Quality Index"
-    category: environmental
-    enabled: false
-    priority: 2
-    base_url: "https://api.waqi.info/map/bounds/"
-    auth_type: api_key
-    auth_config:
-      key_env_var: WAQI_API_KEY
-      key_param: token
-    poll_interval_seconds: 1800
-    rate_limit_per_minute: 60
-    timeout_seconds: 30
-    request:
-      method: GET
-      params:
-        latlng: "{bbox_south},{bbox_west},{bbox_north},{bbox_east}"
-    response_format: json
-    results_path: data
-    field_mapping:
-      lat: "lat"
-      lon: "lon"
-      timestamp: "_static:now"
-      timestamp_format: iso8601
-      confidence: "_static:0.85"
-    observable_type: air_quality
-    extra_fields:
-      aqi: "aqi"
-      station: "station.name"
-
-  - id: openaq
-    name: "OpenAQ Air Quality"
-    category: environmental
+  - id: nasa_eonet_floods
+    name: "NASA EONET Floods"
+    category: flood
     enabled: true
-    priority: 2
-    base_url: "https://api.openaq.org/v2/measurements"
+    priority: 1
+    base_url: "https://eonet.gsfc.nasa.gov/api/v3/events"
     auth_type: none
     poll_interval_seconds: 1800
     rate_limit_per_minute: 10
     timeout_seconds: 30
-    request:
-      method: GET
-      params:
-        limit: "200"
-        parameter: "pm25"
-        order_by: datetime
-        sort: desc
-        coordinates: "{center_lat},{center_lon}"
-        radius: "100000"
+    method: GET
+    params:
+      status: open
+      category: floods
+      limit: "50"
+      days: "7"
     response_format: json
-    results_path: results
+    results_path: events
     field_mapping:
-      lat: "coordinates.latitude"
-      lon: "coordinates.longitude"
-      timestamp: "date.utc"
+      lat: "geometry[0].coordinates[1]"
+      lon: "geometry[0].coordinates[0]"
+      timestamp: "geometry[0].date"
       timestamp_format: iso8601
       confidence: "_static:0.85"
-    observable_type: air_quality
+    observable_type: flood_alert
     extra_fields:
-      aqi: value
-      parameter: parameter
-      unit: unit
-      location: location
-      country: country
+      title: title
+
+  # ===========================================================================
+  # SPACE WEATHER
+  # ===========================================================================
+
+  - id: noaa_swpc_kp
+    name: "NOAA SWPC Kp Index"
+    category: space_weather
+    enabled: true
+    priority: 2
+    base_url: "https://services.swpc.noaa.gov/json/planetary_k_index_1m.json"
+    auth_type: none
+    poll_interval_seconds: 900
+    rate_limit_per_minute: 10
+    timeout_seconds: 15
+    method: GET
+    params: {}
+    response_format: json
+    results_path: ""
+    field_mapping:
+      lat: "_static:0.0"
+      lon: "_static:0.0"
+      timestamp: "time_tag"
+      timestamp_format: iso8601
+      confidence: "_static:0.95"
+    observable_type: space_weather
+    extra_fields:
+      kp_index: kp
+      estimated_kp: estimated_kp
+
+  - id: noaa_swpc_solar_wind
+    name: "NOAA SWPC Solar Wind"
+    category: space_weather
+    enabled: true
+    priority: 2
+    base_url: "https://services.swpc.noaa.gov/products/solar-wind/plasma-5-minute.json"
+    auth_type: none
+    poll_interval_seconds: 600
+    rate_limit_per_minute: 10
+    timeout_seconds: 15
+    method: GET
+    params: {}
+    response_format: json
+    results_path: ""
+    field_mapping:
+      lat: "_static:0.0"
+      lon: "_static:0.0"
+      timestamp: "[0]"
+      timestamp_format: iso8601
+      confidence: "_static:0.95"
+    observable_type: space_weather
+    extra_fields:
+      density: "[1]"
+      speed: "[2]"
+      temperature: "[3]"
+
+  - id: noaa_swpc_alerts
+    name: "NOAA SWPC Alerts"
+    category: space_weather
+    enabled: true
+    priority: 1
+    base_url: "https://services.swpc.noaa.gov/products/alerts.json"
+    auth_type: none
+    poll_interval_seconds: 600
+    rate_limit_per_minute: 10
+    timeout_seconds: 15
+    method: GET
+    params: {}
+    response_format: json
+    results_path: ""
+    field_mapping:
+      lat: "_static:0.0"
+      lon: "_static:0.0"
+      timestamp: "issue_datetime"
+      timestamp_format: iso8601
+      confidence: "_static:0.9"
+    observable_type: space_weather
+    extra_fields:
+      product_id: product_id
+      message: message
+
+  - id: nasa_donki_cme
+    name: "NASA DONKI Coronal Mass Ejections"
+    category: space_weather
+    enabled: true
+    priority: 2
+    base_url: "https://api.nasa.gov/DONKI/CME"
+    auth_type: api_key
+    auth_config:
+      key_param: api_key
+      fallback_key: DEMO_KEY
+    poll_interval_seconds: 3600
+    rate_limit_per_minute: 10
+    timeout_seconds: 30
+    method: GET
+    params:
+      startDate: "{since_date}"
+      endDate: "{now_date}"
+    response_format: json
+    results_path: ""
+    field_mapping:
+      lat: "_static:0.0"
+      lon: "_static:0.0"
+      timestamp: startTime
+      timestamp_format: iso8601
+      confidence: "_static:0.9"
+    observable_type: space_weather
+    extra_fields:
+      activity_id: activityID
+      note: note
+
+  - id: nasa_donki_flare
+    name: "NASA DONKI Solar Flares"
+    category: space_weather
+    enabled: true
+    priority: 2
+    base_url: "https://api.nasa.gov/DONKI/FLR"
+    auth_type: api_key
+    auth_config:
+      key_param: api_key
+      fallback_key: DEMO_KEY
+    poll_interval_seconds: 3600
+    rate_limit_per_minute: 10
+    timeout_seconds: 30
+    method: GET
+    params:
+      startDate: "{since_date}"
+      endDate: "{now_date}"
+    response_format: json
+    results_path: ""
+    field_mapping:
+      lat: "_static:0.0"
+      lon: "_static:0.0"
+      timestamp: beginTime
+      timestamp_format: iso8601
+      confidence: "_static:0.9"
+    observable_type: space_weather
+    extra_fields:
+      class_type: classType
+      source_location: sourceLocation
+
+  - id: nasa_donki_gst
+    name: "NASA DONKI Geomagnetic Storms"
+    category: space_weather
+    enabled: true
+    priority: 1
+    base_url: "https://api.nasa.gov/DONKI/GST"
+    auth_type: api_key
+    auth_config:
+      key_param: api_key
+      fallback_key: DEMO_KEY
+    poll_interval_seconds: 3600
+    rate_limit_per_minute: 10
+    timeout_seconds: 30
+    method: GET
+    params:
+      startDate: "{since_date}"
+      endDate: "{now_date}"
+    response_format: json
+    results_path: ""
+    field_mapping:
+      lat: "_static:0.0"
+      lon: "_static:0.0"
+      timestamp: startTime
+      timestamp_format: iso8601
+      confidence: "_static:0.9"
+    observable_type: space_weather
+    extra_fields:
+      activity_id: gstID
+      kp_index: "allKpIndex[0].kpIndex"
+
+  - id: nasa_donki_ips
+    name: "NASA DONKI Interplanetary Shocks"
+    category: space_weather
+    enabled: true
+    priority: 2
+    base_url: "https://api.nasa.gov/DONKI/IPS"
+    auth_type: api_key
+    auth_config:
+      key_param: api_key
+      fallback_key: DEMO_KEY
+    poll_interval_seconds: 3600
+    rate_limit_per_minute: 10
+    timeout_seconds: 30
+    method: GET
+    params:
+      startDate: "{since_date}"
+      endDate: "{now_date}"
+    response_format: json
+    results_path: ""
+    field_mapping:
+      lat: "_static:0.0"
+      lon: "_static:0.0"
+      timestamp: eventTime
+      timestamp_format: iso8601
+      confidence: "_static:0.9"
+    observable_type: space_weather
+    extra_fields:
+      catalog: catalog
+      activity_id: activityID
+
+  - id: nasa_donki_sep
+    name: "NASA DONKI Solar Energetic Particles"
+    category: space_weather
+    enabled: true
+    priority: 2
+    base_url: "https://api.nasa.gov/DONKI/SEP"
+    auth_type: api_key
+    auth_config:
+      key_param: api_key
+      fallback_key: DEMO_KEY
+    poll_interval_seconds: 3600
+    rate_limit_per_minute: 10
+    timeout_seconds: 30
+    method: GET
+    params:
+      startDate: "{since_date}"
+      endDate: "{now_date}"
+    response_format: json
+    results_path: ""
+    field_mapping:
+      lat: "_static:0.0"
+      lon: "_static:0.0"
+      timestamp: eventTime
+      timestamp_format: iso8601
+      confidence: "_static:0.9"
+    observable_type: space_weather
+    extra_fields:
+      activity_id: sepID
+
+  - id: nasa_donki_hss
+    name: "NASA DONKI High Speed Streams"
+    category: space_weather
+    enabled: true
+    priority: 3
+    base_url: "https://api.nasa.gov/DONKI/HSS"
+    auth_type: api_key
+    auth_config:
+      key_param: api_key
+      fallback_key: DEMO_KEY
+    poll_interval_seconds: 3600
+    rate_limit_per_minute: 10
+    timeout_seconds: 30
+    method: GET
+    params:
+      startDate: "{since_date}"
+      endDate: "{now_date}"
+    response_format: json
+    results_path: ""
+    field_mapping:
+      lat: "_static:0.0"
+      lon: "_static:0.0"
+      timestamp: eventTime
+      timestamp_format: iso8601
+      confidence: "_static:0.85"
+    observable_type: space_weather
+    extra_fields:
+      activity_id: hssID
+
+  - id: nasa_donki_notifications
+    name: "NASA DONKI Notifications"
+    category: space_weather
+    enabled: true
+    priority: 2
+    base_url: "https://api.nasa.gov/DONKI/notifications"
+    auth_type: api_key
+    auth_config:
+      key_param: api_key
+      fallback_key: DEMO_KEY
+    poll_interval_seconds: 1800
+    rate_limit_per_minute: 10
+    timeout_seconds: 30
+    method: GET
+    params:
+      startDate: "{since_date}"
+      endDate: "{now_date}"
+      type: all
+    response_format: json
+    results_path: ""
+    field_mapping:
+      lat: "_static:0.0"
+      lon: "_static:0.0"
+      timestamp: messageIssueTime
+      timestamp_format: iso8601
+      confidence: "_static:0.9"
+    observable_type: space_weather
+    extra_fields:
+      message_type: messageType
+      message_url: messageURL
+
+  # ===========================================================================
+  # ENVIRONMENTAL
+  # ===========================================================================
 
   - id: global_forest_watch
-    name: "Global Forest Watch"
+    name: "Global Forest Watch Alerts"
     category: environmental
     enabled: true
     priority: 2
@@ -412,11 +1304,9 @@ sources:
     poll_interval_seconds: 3600
     rate_limit_per_minute: 5
     timeout_seconds: 60
-    request:
-      method: GET
-      params:
-        sql: "SELECT latitude, longitude, gfw_integrated_alerts__date, gfw_integrated_alerts__confidence FROM results LIMIT 200"
-        geostore_origin: rw
+    method: GET
+    params:
+      sql: "SELECT latitude, longitude, gfw_integrated_alerts__date, gfw_integrated_alerts__confidence FROM results LIMIT 200"
     response_format: json
     results_path: data
     field_mapping:
@@ -428,50 +1318,40 @@ sources:
       confidence_transform: "map:high=0.9,nominal=0.6,low=0.3"
     observable_type: deforestation
 
+  - id: nasa_eonet_icecaps
+    name: "NASA EONET Sea/Lake Ice"
+    category: environmental
+    enabled: true
+    priority: 3
+    base_url: "https://eonet.gsfc.nasa.gov/api/v3/events"
+    auth_type: none
+    poll_interval_seconds: 3600
+    rate_limit_per_minute: 10
+    timeout_seconds: 30
+    method: GET
+    params:
+      status: open
+      category: seaLakeIce
+      limit: "30"
+      days: "14"
+    response_format: json
+    results_path: events
+    field_mapping:
+      lat: "geometry[0].coordinates[1]"
+      lon: "geometry[0].coordinates[0]"
+      timestamp: "geometry[0].date"
+      timestamp_format: iso8601
+      confidence: "_static:0.8"
+    observable_type: generic
+    extra_fields:
+      title: title
+
   # ===========================================================================
   # CONFLICT / POLITICAL
   # ===========================================================================
 
-  - id: acled_conflict
-    name: "ACLED Conflict Events"
-    category: conflict
-    enabled: false
-    priority: 1
-    base_url: "https://api.acleddata.com/acled/read"
-    auth_type: api_key
-    auth_config:
-      key_env_var: ACLED_API_KEY
-      key_param: key
-      email_env_var: ACLED_EMAIL
-      email_param: email
-    poll_interval_seconds: 1800
-    rate_limit_per_minute: 5
-    timeout_seconds: 30
-    request:
-      method: GET
-      params:
-        event_date: "{since_date}"
-        event_date_where: ">="
-        limit: "500"
-    response_format: json
-    results_path: data
-    field_mapping:
-      lat: latitude
-      lon: longitude
-      timestamp: event_date
-      timestamp_format: "strftime:%Y-%m-%d"
-      confidence: "_static:0.8"
-    observable_type: armed_conflict
-    extra_fields:
-      fatalities: fatalities
-      event_type: event_type
-      sub_event_type: sub_event_type
-      actor1: actor1
-      country: country
-      notes: notes
-
   - id: ucdp_conflict
-    name: "UCDP Conflict Data"
+    name: "UCDP Conflict Events"
     category: conflict
     enabled: true
     priority: 2
@@ -480,11 +1360,10 @@ sources:
     poll_interval_seconds: 3600
     rate_limit_per_minute: 5
     timeout_seconds: 30
-    request:
-      method: GET
-      params:
-        pagesize: "200"
-        page: "0"
+    method: GET
+    params:
+      pagesize: "200"
+      page: "0"
     response_format: json
     results_path: Result
     field_mapping:
@@ -499,85 +1378,13 @@ sources:
       country: country
       dyad_name: dyad_name
       type_of_violence: type_of_violence
-      source_article: source_article
-
-  # ===========================================================================
-  # NEWS / OSINT
-  # ===========================================================================
-
-  - id: gdelt_events
-    name: "GDELT Global Events"
-    category: news
-    enabled: true
-    priority: 1
-    base_url: "https://api.gdeltproject.org/api/v2/geo/geo"
-    auth_type: none
-    poll_interval_seconds: 300
-    rate_limit_per_minute: 20
-    timeout_seconds: 30
-    request:
-      method: GET
-      params:
-        query: "conflict OR explosion OR earthquake OR flood OR protest"
-        format: GeoJSON
-        timespan: 60min
-        maxrecords: "250"
-    response_format: geojson
-    results_path: features
-    field_mapping:
-      lat: "geometry.coordinates[1]"
-      lon: "geometry.coordinates[0]"
-      timestamp: "properties.urlpubtimedate"
-      timestamp_format: iso8601
-      confidence: "_static:0.6"
-    observable_type: news_event
-    extra_fields:
-      url: "properties.url"
-      name: "properties.name"
-      article_count: "properties.count"
-      tone: "properties.tone"
-
-  - id: newsapi
-    name: "NewsAPI Headlines"
-    category: news
-    enabled: false
-    priority: 3
-    base_url: "https://newsapi.org/v2/everything"
-    auth_type: api_key
-    auth_config:
-      key_env_var: NEWSAPI_KEY
-      key_param: apiKey
-    poll_interval_seconds: 3600
-    rate_limit_per_minute: 1
-    timeout_seconds: 30
-    request:
-      method: GET
-      params:
-        q: "conflict OR explosion OR earthquake OR disaster"
-        sortBy: publishedAt
-        language: en
-        pageSize: "50"
-    response_format: json
-    results_path: articles
-    field_mapping:
-      lat: "_static:0.0"
-      lon: "_static:0.0"
-      timestamp: publishedAt
-      timestamp_format: iso8601
-      confidence: "_static:0.5"
-    observable_type: news_event
-    extra_fields:
-      title: title
-      source_name: "source.name"
-      url: url
-      description: description
 
   # ===========================================================================
   # ECONOMIC
   # ===========================================================================
 
-  - id: world_bank
-    name: "World Bank Indicators"
+  - id: world_bank_indicators
+    name: "World Bank Key Indicators"
     category: economic
     enabled: true
     priority: 3
@@ -586,13 +1393,12 @@ sources:
     poll_interval_seconds: 86400
     rate_limit_per_minute: 30
     timeout_seconds: 30
-    request:
-      method: GET
-      params:
-        format: json
-        per_page: "50"
-        date: "2024:2026"
-        mrv: "1"
+    method: GET
+    params:
+      format: json
+      per_page: "50"
+      date: "2024:2026"
+      mrv: "1"
     response_format: json
     results_path: "[1]"
     field_mapping:
@@ -604,114 +1410,41 @@ sources:
     observable_type: economic_indicator
     extra_fields:
       country: "country.value"
-      country_code: "countryiso3code"
       indicator: "indicator.value"
       value: value
 
-  - id: fred_economic
-    name: "FRED Economic Data"
-    category: economic
-    enabled: false
-    priority: 3
-    base_url: "https://api.stlouisfed.org/fred/series/observations"
-    auth_type: api_key
-    auth_config:
-      key_env_var: FRED_API_KEY
-      key_param: api_key
-    poll_interval_seconds: 86400
-    rate_limit_per_minute: 30
-    timeout_seconds: 30
-    request:
-      method: GET
-      params:
-        series_id: CPIAUCSL
-        file_type: json
-        sort_order: desc
-        limit: "10"
-    response_format: json
-    results_path: observations
-    field_mapping:
-      lat: "_static:38.9"
-      lon: "_static:-77.0"
-      timestamp: date
-      timestamp_format: iso8601
-      confidence: "_static:0.95"
-    observable_type: economic_indicator
-    extra_fields:
-      value: value
-      series_id: "_static:CPIAUCSL"
-
-  - id: imf_data
-    name: "IMF Economic Data"
+  - id: ecb_exchange_rates
+    name: "ECB Exchange Rates"
     category: economic
     enabled: true
     priority: 3
-    base_url: "https://www.imf.org/external/datamapper/api/v1/PCPIPCH"
+    base_url: "https://data-api.ecb.europa.eu/service/data/EXR/D.USD.EUR.SP00.A"
     auth_type: none
     poll_interval_seconds: 86400
     rate_limit_per_minute: 10
     timeout_seconds: 30
-    request:
-      method: GET
-      params: {}
+    method: GET
+    params:
+      format: jsondata
+      lastNObservations: "5"
     response_format: json
     results_path: "_singleton"
     field_mapping:
-      lat: "_static:38.9"
-      lon: "_static:-77.0"
+      lat: "_static:50.1"
+      lon: "_static:8.7"
       timestamp: "_static:now"
       timestamp_format: iso8601
-      confidence: "_static:0.95"
+      confidence: "_static:0.99"
     observable_type: economic_indicator
     extra_fields:
-      indicator: "_static:CPI_inflation"
-
-  # ===========================================================================
-  # MARITIME / TRADE
-  # ===========================================================================
-
-  - id: un_comtrade
-    name: "UN COMTRADE Trade Data"
-    category: maritime
-    enabled: true
-    priority: 3
-    base_url: "https://comtradeapi.un.org/public/v1/preview/C/A/HS"
-    auth_type: none
-    poll_interval_seconds: 86400
-    rate_limit_per_minute: 5
-    timeout_seconds: 30
-    request:
-      method: GET
-      params:
-        freqCode: A
-        clCode: HS
-        period: "2023"
-        reporterCode: "156"
-        cmdCode: "2709"
-        flowCode: M
-        maxRecords: "50"
-    response_format: json
-    results_path: data
-    field_mapping:
-      lat: "_static:31.2"
-      lon: "_static:121.5"
-      timestamp: period
-      timestamp_format: "strftime:%Y"
-      confidence: "_static:0.9"
-    observable_type: economic_indicator
-    extra_fields:
-      reporter: reporterDesc
-      partner: partnerDesc
-      commodity: cmdDesc
-      trade_value: primaryValue
-      flow: flowDesc
+      indicator: "_static:EUR_USD_exchange"
 
   # ===========================================================================
   # AVIATION
   # ===========================================================================
 
-  - id: opensky_aircraft
-    name: "OpenSky Network"
+  - id: opensky_states
+    name: "OpenSky Network Aircraft"
     category: aviation
     enabled: true
     priority: 2
@@ -720,13 +1453,12 @@ sources:
     poll_interval_seconds: 300
     rate_limit_per_minute: 3
     timeout_seconds: 30
-    request:
-      method: GET
-      params:
-        lamin: "{bbox_south}"
-        lomin: "{bbox_west}"
-        lamax: "{bbox_north}"
-        lomax: "{bbox_east}"
+    method: GET
+    params:
+      lamin: "{bbox_south}"
+      lomin: "{bbox_west}"
+      lamax: "{bbox_north}"
+      lomax: "{bbox_east}"
     response_format: json
     results_path: states
     field_mapping:
@@ -742,174 +1474,107 @@ sources:
       origin_country: "[2]"
       altitude: "[7]"
       velocity: "[9]"
-      on_ground: "[8]"
 
   # ===========================================================================
-  # SPACE WEATHER
+  # HUMANITARIAN
   # ===========================================================================
 
-  - id: noaa_swpc
-    name: "NOAA Space Weather"
-    category: space_weather
+  - id: reliefweb_disasters
+    name: "ReliefWeb Disasters"
+    category: humanitarian
     enabled: true
-    priority: 2
-    base_url: "https://services.swpc.noaa.gov/json/planetary_k_index_1m.json"
+    priority: 1
+    base_url: "https://api.reliefweb.int/v1/disasters"
     auth_type: none
-    poll_interval_seconds: 900
-    rate_limit_per_minute: 10
-    timeout_seconds: 15
-    request:
-      method: GET
-      params: {}
-    response_format: json
-    results_path: ""
-    field_mapping:
-      lat: "_static:0.0"
-      lon: "_static:0.0"
-      timestamp: "time_tag"
-      timestamp_format: iso8601
-      confidence: "_static:0.95"
-    observable_type: space_weather
-    extra_fields:
-      kp_index: kp
-      estimated_kp: estimated_kp
-      a_running: a_running
-
-  - id: nasa_donki_cme
-    name: "NASA DONKI CMEs"
-    category: space_weather
-    enabled: true
-    priority: 2
-    base_url: "https://api.nasa.gov/DONKI/CME"
-    auth_type: api_key
-    auth_config:
-      key_env_var: NASA_API_KEY
-      key_param: api_key
-      fallback_key: DEMO_KEY
-    poll_interval_seconds: 3600
+    poll_interval_seconds: 1800
     rate_limit_per_minute: 10
     timeout_seconds: 30
-    request:
-      method: GET
-      params:
-        startDate: "{since_date}"
-        endDate: "{now_date}"
+    method: GET
+    params:
+      appname: panopticon
+      limit: "50"
+      sort[]: "date:desc"
+      fields[include][]: "name,date.created,status,country.name,primary_country.location,type.name"
     response_format: json
-    results_path: ""
+    results_path: data
     field_mapping:
-      lat: "_static:0.0"
-      lon: "_static:0.0"
-      timestamp: startTime
+      lat: "fields.primary_country.location.lat"
+      lon: "fields.primary_country.location.lon"
+      timestamp: "fields.date.created"
       timestamp_format: iso8601
-      confidence: "_static:0.9"
-    observable_type: space_weather
+      confidence: "_static:0.85"
+    observable_type: displacement
     extra_fields:
-      activity_id: activityID
-      catalog: catalog
-      note: note
-      source_location: sourceLocation
+      name: "fields.name"
+      disaster_type: "fields.type[0].name"
+      country: "fields.country[0].name"
 
-  - id: nasa_donki_flare
-    name: "NASA DONKI Solar Flares"
-    category: space_weather
+  - id: reliefweb_reports
+    name: "ReliefWeb Situation Reports"
+    category: humanitarian
     enabled: true
     priority: 2
-    base_url: "https://api.nasa.gov/DONKI/FLR"
-    auth_type: api_key
-    auth_config:
-      key_env_var: NASA_API_KEY
-      key_param: api_key
-      fallback_key: DEMO_KEY
-    poll_interval_seconds: 3600
+    base_url: "https://api.reliefweb.int/v1/reports"
+    auth_type: none
+    poll_interval_seconds: 1800
     rate_limit_per_minute: 10
     timeout_seconds: 30
-    request:
-      method: GET
-      params:
-        startDate: "{since_date}"
-        endDate: "{now_date}"
+    method: GET
+    params:
+      appname: panopticon
+      limit: "50"
+      sort[]: "date.created:desc"
+      fields[include][]: "title,date.created,country.name,primary_country.location,source.name,disaster.name"
+      filter[field]: format.name
+      filter[value]: Situation Report
     response_format: json
-    results_path: ""
+    results_path: data
     field_mapping:
-      lat: "_static:0.0"
-      lon: "_static:0.0"
-      timestamp: beginTime
+      lat: "fields.primary_country.location.lat"
+      lon: "fields.primary_country.location.lon"
+      timestamp: "fields.date.created"
       timestamp_format: iso8601
-      confidence: "_static:0.9"
-    observable_type: space_weather
+      confidence: "_static:0.7"
+    observable_type: news_event
     extra_fields:
-      flare_id: flrID
-      class_type: classType
-      source_location: sourceLocation
+      title: "fields.title"
+      country: "fields.country[0].name"
+      source: "fields.source[0].name"
 
-  # ===========================================================================
-  # SANCTIONS / POLITICAL RISK
-  # ===========================================================================
-
-  - id: ofac_sanctions
-    name: "OFAC Sanctions List"
-    category: sanctions
+  - id: unhcr_refugee
+    name: "UNHCR Refugee Statistics"
+    category: humanitarian
     enabled: true
     priority: 3
-    base_url: "https://sanctionslistservice.ofac.treas.gov/api/PublicationPreview/exports/SDN.CSV"
-    auth_type: none
-    poll_interval_seconds: 86400
-    rate_limit_per_minute: 2
-    timeout_seconds: 60
-    request:
-      method: GET
-      params: {}
-    response_format: csv
-    results_path: ""
-    field_mapping:
-      lat: "_static:38.9"
-      lon: "_static:-77.0"
-      timestamp: "_static:now"
-      timestamp_format: iso8601
-      confidence: "_static:0.95"
-    observable_type: sanctions_change
-    extra_fields:
-      entity_name: SDN_Name
-      entity_type: SDN_Type
-      program: Program
-      country: Country
-
-  - id: opensanctions
-    name: "OpenSanctions"
-    category: sanctions
-    enabled: true
-    priority: 3
-    base_url: "https://api.opensanctions.org/search/default"
+    base_url: "https://api.unhcr.org/population/v1/refugees/"
     auth_type: none
     poll_interval_seconds: 86400
     rate_limit_per_minute: 5
     timeout_seconds: 30
-    request:
-      method: GET
-      params:
-        q: ""
-        limit: "50"
-        schema: LegalEntity
+    method: GET
+    params:
+      limit: "50"
+      yearFrom: "2024"
+      yearTo: "2026"
     response_format: json
-    results_path: results
+    results_path: items
     field_mapping:
       lat: "_static:0.0"
       lon: "_static:0.0"
-      timestamp: "properties.modifiedAt[0]"
+      timestamp: "_static:now"
       timestamp_format: iso8601
-      confidence: "score"
-      confidence_transform: "divide:100"
-    observable_type: sanctions_change
+      confidence: "_static:0.9"
+    observable_type: displacement
     extra_fields:
-      entity_name: caption
-      schema: schema
-      datasets: datasets
+      refugees: refugees
+      country_origin: coo_name
+      country_asylum: coa_name
 
   # ===========================================================================
   # HEALTH / DISEASE
   # ===========================================================================
 
-  - id: who_disease_outbreaks
+  - id: who_outbreaks
     name: "WHO Disease Outbreak News"
     category: health
     enabled: true
@@ -919,11 +1584,10 @@ sources:
     poll_interval_seconds: 3600
     rate_limit_per_minute: 5
     timeout_seconds: 30
-    request:
-      method: GET
-      params:
-        "$top": "50"
-        "$orderby": "PublicationDate desc"
+    method: GET
+    params:
+      "$top": "50"
+      "$orderby": "PublicationDate desc"
     response_format: json
     results_path: value
     field_mapping:
@@ -936,14 +1600,14 @@ sources:
     extra_fields:
       title: Name
       country: CountryName
-      disease_name: DiseaseName
+      disease: DiseaseName
 
   # ===========================================================================
   # CYBER THREAT
   # ===========================================================================
 
   - id: abuse_ch_threatfox
-    name: "abuse.ch ThreatFox IOCs"
+    name: "ThreatFox IOCs"
     category: cyber
     enabled: true
     priority: 2
@@ -952,9 +1616,8 @@ sources:
     poll_interval_seconds: 3600
     rate_limit_per_minute: 5
     timeout_seconds: 30
-    request:
-      method: POST
-      params: {}
+    method: POST
+    params: {}
     body:
       query: get_iocs
       days: 1
@@ -973,103 +1636,1466 @@ sources:
       ioc_type: ioc_type
       threat_type: threat_type
       malware: malware_printable
-      tags: tags
 
-  - id: virustotal
-    name: "VirusTotal"
+  - id: abuse_ch_urlhaus
+    name: "URLhaus Malicious URLs"
     category: cyber
-    enabled: false
-    priority: 3
-    base_url: "https://www.virustotal.com/api/v3/intelligence/search"
-    auth_type: header
-    auth_config:
-      key_env_var: VIRUSTOTAL_API_KEY
-      header_name: x-apikey
+    enabled: true
+    priority: 2
+    base_url: "https://urlhaus-api.abuse.ch/v1/urls/recent/"
+    auth_type: none
     poll_interval_seconds: 3600
-    rate_limit_per_minute: 4
+    rate_limit_per_minute: 5
     timeout_seconds: 30
-    request:
-      method: GET
-      params:
-        query: "type:url AND positives:5+"
-        limit: "10"
+    method: POST
+    params: {}
+    body:
+      limit: "100"
     response_format: json
-    results_path: data
+    results_path: urls
     field_mapping:
       lat: "_static:0.0"
       lon: "_static:0.0"
-      timestamp: "_static:now"
+      timestamp: date_added
       timestamp_format: iso8601
       confidence: "_static:0.7"
     observable_type: cyber_threat
     extra_fields:
-      type: type
-      id: id
+      url: url
+      url_status: url_status
+      threat: threat
+      tags: tags
+
+  - id: abuse_ch_feodo
+    name: "Feodo Tracker Botnet C2"
+    category: cyber
+    enabled: true
+    priority: 2
+    base_url: "https://feodotracker.abuse.ch/downloads/ipblocklist_recommended.json"
+    auth_type: none
+    poll_interval_seconds: 3600
+    rate_limit_per_minute: 5
+    timeout_seconds: 30
+    method: GET
+    params: {}
+    response_format: json
+    results_path: ""
+    field_mapping:
+      lat: "_static:0.0"
+      lon: "_static:0.0"
+      timestamp: first_seen
+      timestamp_format: iso8601
+      confidence: "_static:0.8"
+    observable_type: cyber_threat
+    extra_fields:
+      ip_address: ip_address
+      port: port
+      malware: malware
+      status: status
 
   # ===========================================================================
-  # HUMANITARIAN / DISPLACEMENT
+  # SANCTIONS
   # ===========================================================================
 
-  - id: unhcr_refugee
-    name: "UNHCR Refugee Statistics"
-    category: humanitarian
+  - id: opensanctions
+    name: "OpenSanctions"
+    category: sanctions
     enabled: true
     priority: 3
-    base_url: "https://api.unhcr.org/population/v1/refugees/"
+    base_url: "https://api.opensanctions.org/search/default"
     auth_type: none
     poll_interval_seconds: 86400
     rate_limit_per_minute: 5
     timeout_seconds: 30
-    request:
-      method: GET
-      params:
-        limit: "50"
-        yearFrom: "2024"
-        yearTo: "2026"
+    method: GET
+    params:
+      q: ""
+      limit: "50"
+      schema: LegalEntity
     response_format: json
-    results_path: items
+    results_path: results
+    field_mapping:
+      lat: "_static:0.0"
+      lon: "_static:0.0"
+      timestamp: "properties.modifiedAt[0]"
+      timestamp_format: iso8601
+      confidence: "score"
+      confidence_transform: "divide:100"
+    observable_type: sanctions_change
+    extra_fields:
+      entity_name: caption
+      schema: schema
+
+  # ===========================================================================
+  # NEWS RSS INTELLIGENCE FEEDS
+  # ===========================================================================
+
+  - id: rss_reuters_world
+    name: "Reuters World News"
+    category: news_rss
+    enabled: true
+    priority: 2
+    base_url: "https://news.google.com/rss/search?q=reuters+world+breaking&hl=en-US&gl=US&ceid=US:en"
+    auth_type: none
+    poll_interval_seconds: 600
+    rate_limit_per_minute: 5
+    timeout_seconds: 15
+    method: GET
+    params: {}
+    response_format: xml
+    results_path: item
+    field_mapping:
+      lat: "_static:0.0"
+      lon: "_static:0.0"
+      timestamp: pubDate
+      timestamp_format: iso8601
+      confidence: "_static:0.5"
+    observable_type: news_event
+    extra_fields:
+      title: title
+      link: link
+      source: source
+
+  - id: rss_bbc_world
+    name: "BBC World Service"
+    category: news_rss
+    enabled: true
+    priority: 2
+    base_url: "https://feeds.bbci.co.uk/news/world/rss.xml"
+    auth_type: none
+    poll_interval_seconds: 600
+    rate_limit_per_minute: 5
+    timeout_seconds: 15
+    method: GET
+    params: {}
+    response_format: xml
+    results_path: item
+    field_mapping:
+      lat: "_static:51.5"
+      lon: "_static:-0.1"
+      timestamp: pubDate
+      timestamp_format: iso8601
+      confidence: "_static:0.5"
+    observable_type: news_event
+    extra_fields:
+      title: title
+      link: link
+      description: description
+
+  - id: rss_aljazeera
+    name: "Al Jazeera English"
+    category: news_rss
+    enabled: true
+    priority: 2
+    base_url: "https://www.aljazeera.com/xml/rss/all.xml"
+    auth_type: none
+    poll_interval_seconds: 600
+    rate_limit_per_minute: 5
+    timeout_seconds: 15
+    method: GET
+    params: {}
+    response_format: xml
+    results_path: item
+    field_mapping:
+      lat: "_static:25.3"
+      lon: "_static:51.5"
+      timestamp: pubDate
+      timestamp_format: iso8601
+      confidence: "_static:0.5"
+    observable_type: news_event
+    extra_fields:
+      title: title
+      link: link
+
+  - id: rss_un_news
+    name: "UN News Centre"
+    category: news_rss
+    enabled: true
+    priority: 2
+    base_url: "https://news.un.org/feed/subscribe/en/news/all/rss.xml"
+    auth_type: none
+    poll_interval_seconds: 900
+    rate_limit_per_minute: 5
+    timeout_seconds: 15
+    method: GET
+    params: {}
+    response_format: xml
+    results_path: item
+    field_mapping:
+      lat: "_static:40.7"
+      lon: "_static:-74.0"
+      timestamp: pubDate
+      timestamp_format: iso8601
+      confidence: "_static:0.6"
+    observable_type: news_event
+    extra_fields:
+      title: title
+      link: link
+
+  - id: rss_france24
+    name: "France24 English"
+    category: news_rss
+    enabled: true
+    priority: 3
+    base_url: "https://www.france24.com/en/rss"
+    auth_type: none
+    poll_interval_seconds: 900
+    rate_limit_per_minute: 5
+    timeout_seconds: 15
+    method: GET
+    params: {}
+    response_format: xml
+    results_path: item
+    field_mapping:
+      lat: "_static:48.9"
+      lon: "_static:2.3"
+      timestamp: pubDate
+      timestamp_format: iso8601
+      confidence: "_static:0.5"
+    observable_type: news_event
+    extra_fields:
+      title: title
+      link: link
+
+  - id: rss_dw_news
+    name: "Deutsche Welle"
+    category: news_rss
+    enabled: true
+    priority: 3
+    base_url: "https://rss.dw.com/rdf/rss-en-all"
+    auth_type: none
+    poll_interval_seconds: 900
+    rate_limit_per_minute: 5
+    timeout_seconds: 15
+    method: GET
+    params: {}
+    response_format: xml
+    results_path: item
+    field_mapping:
+      lat: "_static:50.7"
+      lon: "_static:7.1"
+      timestamp: pubDate
+      timestamp_format: iso8601
+      confidence: "_static:0.5"
+    observable_type: news_event
+    extra_fields:
+      title: title
+      link: link
+
+  - id: rss_nhk_world
+    name: "NHK World Japan"
+    category: news_rss
+    enabled: true
+    priority: 3
+    base_url: "https://www3.nhk.or.jp/rss/news/cat0.xml"
+    auth_type: none
+    poll_interval_seconds: 900
+    rate_limit_per_minute: 5
+    timeout_seconds: 15
+    method: GET
+    params: {}
+    response_format: xml
+    results_path: item
+    field_mapping:
+      lat: "_static:35.7"
+      lon: "_static:139.7"
+      timestamp: pubDate
+      timestamp_format: iso8601
+      confidence: "_static:0.5"
+    observable_type: news_event
+    extra_fields:
+      title: title
+      link: link
+
+  - id: rss_abc_australia
+    name: "ABC Australia News"
+    category: news_rss
+    enabled: true
+    priority: 3
+    base_url: "https://www.abc.net.au/news/feed/2942460/rss.xml"
+    auth_type: none
+    poll_interval_seconds: 900
+    rate_limit_per_minute: 5
+    timeout_seconds: 15
+    method: GET
+    params: {}
+    response_format: xml
+    results_path: item
+    field_mapping:
+      lat: "_static:-33.9"
+      lon: "_static:151.2"
+      timestamp: pubDate
+      timestamp_format: iso8601
+      confidence: "_static:0.5"
+    observable_type: news_event
+    extra_fields:
+      title: title
+      link: link
+
+  # ===========================================================================
+  # NASA NEAR EARTH OBJECTS
+  # ===========================================================================
+
+  - id: nasa_neo
+    name: "NASA Near Earth Objects"
+    category: space_weather
+    enabled: true
+    priority: 3
+    base_url: "https://api.nasa.gov/neo/rest/v1/feed"
+    auth_type: api_key
+    auth_config:
+      key_param: api_key
+      fallback_key: DEMO_KEY
+    poll_interval_seconds: 86400
+    rate_limit_per_minute: 10
+    timeout_seconds: 30
+    method: GET
+    params:
+      start_date: "{since_date}"
+      end_date: "{now_date}"
+    response_format: json
+    results_path: "_singleton"
     field_mapping:
       lat: "_static:0.0"
       lon: "_static:0.0"
       timestamp: "_static:now"
       timestamp_format: iso8601
-      confidence: "_static:0.9"
-    observable_type: displacement
+      confidence: "_static:0.95"
+    observable_type: space_weather
     extra_fields:
-      refugees: refugees
-      asylum_seekers: asylumSeekers
-      country_origin: coo_name
-      country_asylum: coa_name
-      year: year
+      element_count: element_count
 
   # ===========================================================================
-  # INFRASTRUCTURE (OpenStreetMap)
+  # NOAA ADDITIONAL
   # ===========================================================================
 
-  - id: osm_overpass
-    name: "OpenStreetMap Overpass"
-    category: infrastructure
-    enabled: false
-    priority: 3
-    base_url: "https://overpass-api.de/api/interpreter"
+  - id: noaa_tsunami_alerts
+    name: "NOAA Tsunami Alerts"
+    category: seismic
+    enabled: true
+    priority: 1
+    base_url: "https://www.tsunami.gov/events/xml/PAAQAtom.xml"
     auth_type: none
-    poll_interval_seconds: 86400
-    rate_limit_per_minute: 2
-    timeout_seconds: 60
-    request:
-      method: GET
-      params:
-        data: '[out:json];node["power"="plant"]({bbox_south},{bbox_west},{bbox_north},{bbox_east});out body;'
-    response_format: json
-    results_path: elements
+    poll_interval_seconds: 300
+    rate_limit_per_minute: 10
+    timeout_seconds: 15
+    method: GET
+    params: {}
+    response_format: xml
+    results_path: entry
     field_mapping:
-      lat: lat
-      lon: lon
-      timestamp: "_static:now"
+      lat: "_static:0.0"
+      lon: "_static:0.0"
+      timestamp: updated
+      timestamp_format: iso8601
+      confidence: "_static:0.9"
+    observable_type: earthquake
+    extra_fields:
+      title: title
+      summary: summary
+
+  - id: noaa_swpc_dst
+    name: "NOAA SWPC Dst Index"
+    category: space_weather
+    enabled: true
+    priority: 3
+    base_url: "https://services.swpc.noaa.gov/products/kyoto-dst.json"
+    auth_type: none
+    poll_interval_seconds: 1800
+    rate_limit_per_minute: 10
+    timeout_seconds: 15
+    method: GET
+    params: {}
+    response_format: json
+    results_path: ""
+    field_mapping:
+      lat: "_static:0.0"
+      lon: "_static:0.0"
+      timestamp: "[0]"
       timestamp_format: iso8601
       confidence: "_static:0.95"
+    observable_type: space_weather
+    extra_fields:
+      dst_index: "[1]"
+
+  - id: noaa_swpc_sunspot
+    name: "NOAA SWPC Sunspot Number"
+    category: space_weather
+    enabled: true
+    priority: 3
+    base_url: "https://services.swpc.noaa.gov/json/solar-cycle/observed-solar-cycle-indices.json"
+    auth_type: none
+    poll_interval_seconds: 86400
+    rate_limit_per_minute: 10
+    timeout_seconds: 15
+    method: GET
+    params: {}
+    response_format: json
+    results_path: ""
+    field_mapping:
+      lat: "_static:0.0"
+      lon: "_static:0.0"
+      timestamp: "time-tag"
+      timestamp_format: iso8601
+      confidence: "_static:0.99"
+    observable_type: space_weather
+    extra_fields:
+      ssn: ssn
+      f10.7: f10.7
+
+  # ===========================================================================
+  # ADDITIONAL GDELT OSINT QUERIES
+  # ===========================================================================
+
+  - id: gdelt_geo_energy
+    name: "GDELT Energy & Pipeline"
+    category: osint
+    enabled: true
+    priority: 2
+    base_url: "https://api.gdeltproject.org/api/v2/geo/geo"
+    auth_type: none
+    poll_interval_seconds: 600
+    rate_limit_per_minute: 20
+    timeout_seconds: 30
+    method: GET
+    params:
+      query: "oil pipeline OR gas pipeline OR energy crisis OR power outage OR blackout"
+      format: GeoJSON
+      mode: PointData
+      timespan: 60min
+    response_format: geojson
+    results_path: features
+    field_mapping:
+      lat: "geometry.coordinates[1]"
+      lon: "geometry.coordinates[0]"
+      timestamp: "properties.urlpubtimedate"
+      timestamp_format: iso8601
+      confidence: "_static:0.6"
+    observable_type: news_event
+    extra_fields:
+      url: "properties.url"
+      name: "properties.name"
+      tone: "properties.tone"
+
+  - id: gdelt_geo_infrastructure
+    name: "GDELT Infrastructure Attacks"
+    category: osint
+    enabled: true
+    priority: 1
+    base_url: "https://api.gdeltproject.org/api/v2/geo/geo"
+    auth_type: none
+    poll_interval_seconds: 300
+    rate_limit_per_minute: 20
+    timeout_seconds: 30
+    method: GET
+    params:
+      query: "infrastructure attack OR sabotage OR bridge destroyed OR dam breach OR port attack"
+      format: GeoJSON
+      mode: PointData
+      timespan: 60min
+    response_format: geojson
+    results_path: features
+    field_mapping:
+      lat: "geometry.coordinates[1]"
+      lon: "geometry.coordinates[0]"
+      timestamp: "properties.urlpubtimedate"
+      timestamp_format: iso8601
+      confidence: "_static:0.65"
+    observable_type: armed_conflict
+    extra_fields:
+      url: "properties.url"
+      name: "properties.name"
+      tone: "properties.tone"
+
+  - id: gdelt_geo_election
+    name: "GDELT Elections & Political"
+    category: osint
+    enabled: true
+    priority: 2
+    base_url: "https://api.gdeltproject.org/api/v2/geo/geo"
+    auth_type: none
+    poll_interval_seconds: 900
+    rate_limit_per_minute: 20
+    timeout_seconds: 30
+    method: GET
+    params:
+      query: "election OR coup OR political crisis OR regime change OR assassination"
+      format: GeoJSON
+      mode: PointData
+      timespan: 60min
+    response_format: geojson
+    results_path: features
+    field_mapping:
+      lat: "geometry.coordinates[1]"
+      lon: "geometry.coordinates[0]"
+      timestamp: "properties.urlpubtimedate"
+      timestamp_format: iso8601
+      confidence: "_static:0.55"
+    observable_type: news_event
+    extra_fields:
+      url: "properties.url"
+      name: "properties.name"
+      tone: "properties.tone"
+
+  - id: gdelt_geo_food_security
+    name: "GDELT Famine & Food Security"
+    category: osint
+    enabled: true
+    priority: 2
+    base_url: "https://api.gdeltproject.org/api/v2/geo/geo"
+    auth_type: none
+    poll_interval_seconds: 900
+    rate_limit_per_minute: 20
+    timeout_seconds: 30
+    method: GET
+    params:
+      query: "famine OR food crisis OR crop failure OR drought OR food shortage"
+      format: GeoJSON
+      mode: PointData
+      timespan: 60min
+    response_format: geojson
+    results_path: features
+    field_mapping:
+      lat: "geometry.coordinates[1]"
+      lon: "geometry.coordinates[0]"
+      timestamp: "properties.urlpubtimedate"
+      timestamp_format: iso8601
+      confidence: "_static:0.55"
+    observable_type: news_event
+    extra_fields:
+      url: "properties.url"
+      name: "properties.name"
+      tone: "properties.tone"
+
+  - id: gdelt_geo_piracy
+    name: "GDELT Maritime Piracy"
+    category: osint
+    enabled: true
+    priority: 1
+    base_url: "https://api.gdeltproject.org/api/v2/geo/geo"
+    auth_type: none
+    poll_interval_seconds: 600
+    rate_limit_per_minute: 20
+    timeout_seconds: 30
+    method: GET
+    params:
+      query: "piracy OR hijack ship OR maritime attack OR Houthi OR Red Sea attack"
+      format: GeoJSON
+      mode: PointData
+      timespan: 60min
+    response_format: geojson
+    results_path: features
+    field_mapping:
+      lat: "geometry.coordinates[1]"
+      lon: "geometry.coordinates[0]"
+      timestamp: "properties.urlpubtimedate"
+      timestamp_format: iso8601
+      confidence: "_static:0.6"
+    observable_type: vessel_tracking
+    extra_fields:
+      url: "properties.url"
+      name: "properties.name"
+      tone: "properties.tone"
+
+  - id: gdelt_geo_arms
+    name: "GDELT Arms & Weapons"
+    category: osint
+    enabled: true
+    priority: 2
+    base_url: "https://api.gdeltproject.org/api/v2/geo/geo"
+    auth_type: none
+    poll_interval_seconds: 600
+    rate_limit_per_minute: 20
+    timeout_seconds: 30
+    method: GET
+    params:
+      query: "weapons transfer OR arms deal OR missile test OR nuclear test OR ICBM"
+      format: GeoJSON
+      mode: PointData
+      timespan: 60min
+    response_format: geojson
+    results_path: features
+    field_mapping:
+      lat: "geometry.coordinates[1]"
+      lon: "geometry.coordinates[0]"
+      timestamp: "properties.urlpubtimedate"
+      timestamp_format: iso8601
+      confidence: "_static:0.6"
+    observable_type: armed_conflict
+    extra_fields:
+      url: "properties.url"
+      name: "properties.name"
+      tone: "properties.tone"
+
+  - id: gdelt_geo_pollution
+    name: "GDELT Environmental Pollution"
+    category: osint
+    enabled: true
+    priority: 3
+    base_url: "https://api.gdeltproject.org/api/v2/geo/geo"
+    auth_type: none
+    poll_interval_seconds: 900
+    rate_limit_per_minute: 20
+    timeout_seconds: 30
+    method: GET
+    params:
+      query: "oil spill OR chemical leak OR toxic waste OR nuclear contamination OR pollution crisis"
+      format: GeoJSON
+      mode: PointData
+      timespan: 60min
+    response_format: geojson
+    results_path: features
+    field_mapping:
+      lat: "geometry.coordinates[1]"
+      lon: "geometry.coordinates[0]"
+      timestamp: "properties.urlpubtimedate"
+      timestamp_format: iso8601
+      confidence: "_static:0.55"
+    observable_type: air_quality
+    extra_fields:
+      url: "properties.url"
+      name: "properties.name"
+      tone: "properties.tone"
+
+  - id: gdelt_geo_financial
+    name: "GDELT Financial Crisis"
+    category: osint
+    enabled: true
+    priority: 2
+    base_url: "https://api.gdeltproject.org/api/v2/geo/geo"
+    auth_type: none
+    poll_interval_seconds: 900
+    rate_limit_per_minute: 20
+    timeout_seconds: 30
+    method: GET
+    params:
+      query: "bank collapse OR currency crisis OR stock crash OR default OR financial panic"
+      format: GeoJSON
+      mode: PointData
+      timespan: 60min
+    response_format: geojson
+    results_path: features
+    field_mapping:
+      lat: "geometry.coordinates[1]"
+      lon: "geometry.coordinates[0]"
+      timestamp: "properties.urlpubtimedate"
+      timestamp_format: iso8601
+      confidence: "_static:0.5"
+    observable_type: economic_indicator
+    extra_fields:
+      url: "properties.url"
+      name: "properties.name"
+      tone: "properties.tone"
+
+  - id: gdelt_geo_espionage
+    name: "GDELT Espionage & Intel"
+    category: osint
+    enabled: true
+    priority: 2
+    base_url: "https://api.gdeltproject.org/api/v2/geo/geo"
+    auth_type: none
+    poll_interval_seconds: 900
+    rate_limit_per_minute: 20
+    timeout_seconds: 30
+    method: GET
+    params:
+      query: "espionage OR spy OR intelligence leak OR classified OR surveillance"
+      format: GeoJSON
+      mode: PointData
+      timespan: 60min
+    response_format: geojson
+    results_path: features
+    field_mapping:
+      lat: "geometry.coordinates[1]"
+      lon: "geometry.coordinates[0]"
+      timestamp: "properties.urlpubtimedate"
+      timestamp_format: iso8601
+      confidence: "_static:0.5"
+    observable_type: news_event
+    extra_fields:
+      url: "properties.url"
+      name: "properties.name"
+      tone: "properties.tone"
+
+  - id: gdelt_geo_border
+    name: "GDELT Border & Territorial"
+    category: osint
+    enabled: true
+    priority: 2
+    base_url: "https://api.gdeltproject.org/api/v2/geo/geo"
+    auth_type: none
+    poll_interval_seconds: 600
+    rate_limit_per_minute: 20
+    timeout_seconds: 30
+    method: GET
+    params:
+      query: "border clash OR territorial dispute OR incursion OR annexation OR blockade"
+      format: GeoJSON
+      mode: PointData
+      timespan: 60min
+    response_format: geojson
+    results_path: features
+    field_mapping:
+      lat: "geometry.coordinates[1]"
+      lon: "geometry.coordinates[0]"
+      timestamp: "properties.urlpubtimedate"
+      timestamp_format: iso8601
+      confidence: "_static:0.6"
+    observable_type: armed_conflict
+    extra_fields:
+      url: "properties.url"
+      name: "properties.name"
+      tone: "properties.tone"
+
+  - id: gdelt_geo_aviation_incident
+    name: "GDELT Aviation Incidents"
+    category: osint
+    enabled: true
+    priority: 2
+    base_url: "https://api.gdeltproject.org/api/v2/geo/geo"
+    auth_type: none
+    poll_interval_seconds: 600
+    rate_limit_per_minute: 20
+    timeout_seconds: 30
+    method: GET
+    params:
+      query: "plane crash OR aircraft incident OR airspace violation OR shoot down aircraft OR drone strike"
+      format: GeoJSON
+      mode: PointData
+      timespan: 60min
+    response_format: geojson
+    results_path: features
+    field_mapping:
+      lat: "geometry.coordinates[1]"
+      lon: "geometry.coordinates[0]"
+      timestamp: "properties.urlpubtimedate"
+      timestamp_format: iso8601
+      confidence: "_static:0.6"
+    observable_type: aircraft_tracking
+    extra_fields:
+      url: "properties.url"
+      name: "properties.name"
+      tone: "properties.tone"
+
+  - id: gdelt_geo_pandemic
+    name: "GDELT Pandemic & Outbreak"
+    category: osint
+    enabled: true
+    priority: 1
+    base_url: "https://api.gdeltproject.org/api/v2/geo/geo"
+    auth_type: none
+    poll_interval_seconds: 600
+    rate_limit_per_minute: 20
+    timeout_seconds: 30
+    method: GET
+    params:
+      query: "pandemic OR outbreak OR epidemic OR WHO emergency OR quarantine"
+      format: GeoJSON
+      mode: PointData
+      timespan: 60min
+    response_format: geojson
+    results_path: features
+    field_mapping:
+      lat: "geometry.coordinates[1]"
+      lon: "geometry.coordinates[0]"
+      timestamp: "properties.urlpubtimedate"
+      timestamp_format: iso8601
+      confidence: "_static:0.6"
+    observable_type: disease_outbreak
+    extra_fields:
+      url: "properties.url"
+      name: "properties.name"
+      tone: "properties.tone"
+
+  - id: gdelt_geo_space
+    name: "GDELT Space & Satellite"
+    category: osint
+    enabled: true
+    priority: 3
+    base_url: "https://api.gdeltproject.org/api/v2/geo/geo"
+    auth_type: none
+    poll_interval_seconds: 900
+    rate_limit_per_minute: 20
+    timeout_seconds: 30
+    method: GET
+    params:
+      query: "satellite launch OR space debris OR ASAT test OR orbit anomaly OR rocket launch"
+      format: GeoJSON
+      mode: PointData
+      timespan: 60min
+    response_format: geojson
+    results_path: features
+    field_mapping:
+      lat: "geometry.coordinates[1]"
+      lon: "geometry.coordinates[0]"
+      timestamp: "properties.urlpubtimedate"
+      timestamp_format: iso8601
+      confidence: "_static:0.5"
+    observable_type: space_weather
+    extra_fields:
+      url: "properties.url"
+      name: "properties.name"
+      tone: "properties.tone"
+
+  # ===========================================================================
+  # ADDITIONAL SEISMIC SOURCES (FREE, NO KEY)
+  # ===========================================================================
+
+  - id: iris_earthquake
+    name: "IRIS Seismic (Federated)"
+    category: seismic
+    enabled: true
+    priority: 2
+    base_url: "https://service.iris.edu/fdsnws/event/1/query"
+    auth_type: none
+    poll_interval_seconds: 300
+    rate_limit_per_minute: 20
+    timeout_seconds: 30
+    method: GET
+    params:
+      format: geocsv
+      starttime: "{since_iso}"
+      minmagnitude: "3.0"
+      orderby: time
+      limit: "200"
+    response_format: csv
+    results_path: ""
+    field_mapping:
+      lat: Latitude
+      lon: Longitude
+      timestamp: Time
+      timestamp_format: iso8601
+      confidence: "_static:0.9"
+    observable_type: earthquake
+    extra_fields:
+      magnitude: Magnitude
+      depth_km: "Depth/km"
+      mag_type: Magtype
+
+  - id: gfz_potsdam_eq
+    name: "GFZ Potsdam Seismic"
+    category: seismic
+    enabled: true
+    priority: 3
+    base_url: "https://geofon.gfz-potsdam.de/fdsnws/event/1/query"
+    auth_type: none
+    poll_interval_seconds: 600
+    rate_limit_per_minute: 15
+    timeout_seconds: 30
+    method: GET
+    params:
+      format: json
+      starttime: "{since_iso}"
+      minmag: "3.0"
+      orderby: time
+      limit: "100"
+    response_format: json
+    results_path: "features"
+    field_mapping:
+      lat: "geometry.coordinates[1]"
+      lon: "geometry.coordinates[0]"
+      timestamp: "properties.time"
+      timestamp_format: iso8601
+      confidence: "_static:0.85"
+    observable_type: earthquake
+    extra_fields:
+      magnitude: "properties.mag"
+      place: "properties.flynn_region"
+      depth_km: "geometry.coordinates[2]"
+
+  - id: bgs_uk_seismic
+    name: "BGS UK Seismic"
+    category: seismic
+    enabled: true
+    priority: 3
+    base_url: "http://www.earthquakes.bgs.ac.uk/feeds/WorldSeismology.xml"
+    auth_type: none
+    poll_interval_seconds: 900
+    rate_limit_per_minute: 10
+    timeout_seconds: 20
+    method: GET
+    params: {}
+    response_format: xml
+    results_path: item
+    field_mapping:
+      lat: "geo:lat"
+      lon: "geo:long"
+      timestamp: pubDate
+      timestamp_format: rfc2822
+      confidence: "_static:0.8"
+    observable_type: earthquake
+    extra_fields:
+      title: title
+      link: link
+
+  # ===========================================================================
+  # ADDITIONAL NOAA / WEATHER SOURCES
+  # ===========================================================================
+
+  - id: noaa_tsunami_events
+    name: "NOAA Tsunami Events (Historical)"
+    category: seismic
+    enabled: true
+    priority: 2
+    base_url: "https://www.ngdc.noaa.gov/hazel/hazard-service/api/v1/tsunamis/events"
+    auth_type: none
+    poll_interval_seconds: 3600
+    rate_limit_per_minute: 5
+    timeout_seconds: 30
+    method: GET
+    params:
+      minYear: "2024"
+    response_format: json
+    results_path: items
+    field_mapping:
+      lat: latitude
+      lon: longitude
+      timestamp: date
+      timestamp_format: iso8601
+      confidence: "_static:0.95"
+    observable_type: earthquake
+    extra_fields:
+      max_water_height: maxWaterHeight
+      magnitude: eqMagnitude
+      deaths: deaths
+      injuries: injuries
+      country: country
+
+  - id: noaa_significant_eq
+    name: "NOAA Significant Earthquakes"
+    category: seismic
+    enabled: true
+    priority: 2
+    base_url: "https://www.ngdc.noaa.gov/hazel/hazard-service/api/v1/earthquakes"
+    auth_type: none
+    poll_interval_seconds: 3600
+    rate_limit_per_minute: 5
+    timeout_seconds: 30
+    method: GET
+    params:
+      minYear: "2024"
+      minEqMagnitude: "5.0"
+    response_format: json
+    results_path: items
+    field_mapping:
+      lat: latitude
+      lon: longitude
+      timestamp: date
+      timestamp_format: iso8601
+      confidence: "_static:0.95"
+    observable_type: earthquake
+    extra_fields:
+      magnitude: eqMagnitude
+      depth_km: eqDepth
+      intensity: intensity
+      deaths: deaths
+      country: country
+
+  - id: noaa_volcano_events
+    name: "NOAA Volcano Events"
+    category: seismic
+    enabled: true
+    priority: 2
+    base_url: "https://www.ngdc.noaa.gov/hazel/hazard-service/api/v1/volcanoes/events"
+    auth_type: none
+    poll_interval_seconds: 3600
+    rate_limit_per_minute: 5
+    timeout_seconds: 30
+    method: GET
+    params:
+      minYear: "2024"
+    response_format: json
+    results_path: items
+    field_mapping:
+      lat: latitude
+      lon: longitude
+      timestamp: startDate
+      timestamp_format: iso8601
+      confidence: "_static:0.9"
+    observable_type: volcanic_activity
+    extra_fields:
+      name: name
+      vei: vei
+      deaths: deaths
+      country: country
+
+  # ===========================================================================
+  # ADDITIONAL RSS NEWS FEEDS (FREE, NO KEY)
+  # ===========================================================================
+
+  - id: rss_ap_news
+    name: "AP News (World)"
+    category: news_rss
+    enabled: true
+    priority: 2
+    base_url: "https://news.google.com/rss/search?q=world+news+site:apnews.com&hl=en-US"
+    auth_type: none
+    poll_interval_seconds: 600
+    rate_limit_per_minute: 5
+    timeout_seconds: 15
+    method: GET
+    params: {}
+    response_format: xml
+    results_path: item
+    field_mapping:
+      lat: "_static:0.0"
+      lon: "_static:0.0"
+      timestamp: pubDate
+      timestamp_format: rfc2822
+      confidence: "_static:0.7"
+    observable_type: news_event
+    extra_fields:
+      title: title
+      link: link
+      source: source
+
+  - id: rss_cnn_world
+    name: "CNN World News"
+    category: news_rss
+    enabled: true
+    priority: 2
+    base_url: "http://rss.cnn.com/rss/edition_world.rss"
+    auth_type: none
+    poll_interval_seconds: 600
+    rate_limit_per_minute: 5
+    timeout_seconds: 15
+    method: GET
+    params: {}
+    response_format: xml
+    results_path: item
+    field_mapping:
+      lat: "_static:0.0"
+      lon: "_static:0.0"
+      timestamp: pubDate
+      timestamp_format: rfc2822
+      confidence: "_static:0.7"
+    observable_type: news_event
+    extra_fields:
+      title: title
+      link: link
+      description: description
+
+  - id: rss_npr_world
+    name: "NPR World News"
+    category: news_rss
+    enabled: true
+    priority: 3
+    base_url: "https://feeds.npr.org/1004/rss.xml"
+    auth_type: none
+    poll_interval_seconds: 900
+    rate_limit_per_minute: 5
+    timeout_seconds: 15
+    method: GET
+    params: {}
+    response_format: xml
+    results_path: item
+    field_mapping:
+      lat: "_static:0.0"
+      lon: "_static:0.0"
+      timestamp: pubDate
+      timestamp_format: rfc2822
+      confidence: "_static:0.65"
+    observable_type: news_event
+    extra_fields:
+      title: title
+      link: link
+
+  - id: rss_guardian_world
+    name: "The Guardian World"
+    category: news_rss
+    enabled: true
+    priority: 2
+    base_url: "https://www.theguardian.com/world/rss"
+    auth_type: none
+    poll_interval_seconds: 600
+    rate_limit_per_minute: 5
+    timeout_seconds: 15
+    method: GET
+    params: {}
+    response_format: xml
+    results_path: item
+    field_mapping:
+      lat: "_static:0.0"
+      lon: "_static:0.0"
+      timestamp: pubDate
+      timestamp_format: rfc2822
+      confidence: "_static:0.7"
+    observable_type: news_event
+    extra_fields:
+      title: title
+      link: link
+
+  - id: rss_middle_east_eye
+    name: "Middle East Eye"
+    category: news_rss
+    enabled: true
+    priority: 2
+    base_url: "https://www.middleeasteye.net/rss"
+    auth_type: none
+    poll_interval_seconds: 900
+    rate_limit_per_minute: 5
+    timeout_seconds: 15
+    method: GET
+    params: {}
+    response_format: xml
+    results_path: item
+    field_mapping:
+      lat: "_static:0.0"
+      lon: "_static:0.0"
+      timestamp: pubDate
+      timestamp_format: rfc2822
+      confidence: "_static:0.65"
+    observable_type: news_event
+    extra_fields:
+      title: title
+      link: link
+
+  - id: rss_scmp_asia
+    name: "South China Morning Post"
+    category: news_rss
+    enabled: true
+    priority: 2
+    base_url: "https://www.scmp.com/rss/91/feed"
+    auth_type: none
+    poll_interval_seconds: 900
+    rate_limit_per_minute: 5
+    timeout_seconds: 15
+    method: GET
+    params: {}
+    response_format: xml
+    results_path: item
+    field_mapping:
+      lat: "_static:0.0"
+      lon: "_static:0.0"
+      timestamp: pubDate
+      timestamp_format: rfc2822
+      confidence: "_static:0.65"
+    observable_type: news_event
+    extra_fields:
+      title: title
+      link: link
+
+  - id: rss_defense_one
+    name: "Defense One"
+    category: news_rss
+    enabled: true
+    priority: 2
+    base_url: "https://www.defenseone.com/rss/"
+    auth_type: none
+    poll_interval_seconds: 900
+    rate_limit_per_minute: 5
+    timeout_seconds: 15
+    method: GET
+    params: {}
+    response_format: xml
+    results_path: item
+    field_mapping:
+      lat: "_static:0.0"
+      lon: "_static:0.0"
+      timestamp: pubDate
+      timestamp_format: rfc2822
+      confidence: "_static:0.65"
+    observable_type: news_event
+    extra_fields:
+      title: title
+      link: link
+
+  - id: rss_janes_defense
+    name: "Google News: Defense & Military"
+    category: news_rss
+    enabled: true
+    priority: 2
+    base_url: "https://news.google.com/rss/search?q=military+defense+deployment&hl=en-US"
+    auth_type: none
+    poll_interval_seconds: 900
+    rate_limit_per_minute: 5
+    timeout_seconds: 15
+    method: GET
+    params: {}
+    response_format: xml
+    results_path: item
+    field_mapping:
+      lat: "_static:0.0"
+      lon: "_static:0.0"
+      timestamp: pubDate
+      timestamp_format: rfc2822
+      confidence: "_static:0.6"
+    observable_type: news_event
+    extra_fields:
+      title: title
+      link: link
+      source: source
+
+  - id: rss_cyber_news
+    name: "Google News: Cyber Attacks"
+    category: news_rss
+    enabled: true
+    priority: 2
+    base_url: "https://news.google.com/rss/search?q=cyberattack+OR+ransomware+OR+data+breach&hl=en-US"
+    auth_type: none
+    poll_interval_seconds: 900
+    rate_limit_per_minute: 5
+    timeout_seconds: 15
+    method: GET
+    params: {}
+    response_format: xml
+    results_path: item
+    field_mapping:
+      lat: "_static:0.0"
+      lon: "_static:0.0"
+      timestamp: pubDate
+      timestamp_format: rfc2822
+      confidence: "_static:0.6"
+    observable_type: cyber_threat
+    extra_fields:
+      title: title
+      link: link
+      source: source
+
+  - id: rss_climate_news
+    name: "Google News: Climate & Environment"
+    category: news_rss
+    enabled: true
+    priority: 3
+    base_url: "https://news.google.com/rss/search?q=climate+disaster+OR+wildfire+OR+flooding+OR+hurricane&hl=en-US"
+    auth_type: none
+    poll_interval_seconds: 900
+    rate_limit_per_minute: 5
+    timeout_seconds: 15
+    method: GET
+    params: {}
+    response_format: xml
+    results_path: item
+    field_mapping:
+      lat: "_static:0.0"
+      lon: "_static:0.0"
+      timestamp: pubDate
+      timestamp_format: rfc2822
+      confidence: "_static:0.6"
+    observable_type: news_event
+    extra_fields:
+      title: title
+      link: link
+      source: source
+
+  # ===========================================================================
+  # ADDITIONAL FREE API SOURCES
+  # ===========================================================================
+
+  - id: usgs_eq_week_45
+    name: "USGS M4.5+ Past 7 Days"
+    category: seismic
+    enabled: true
+    priority: 2
+    base_url: "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_week.geojson"
+    auth_type: none
+    poll_interval_seconds: 600
+    rate_limit_per_minute: 20
+    timeout_seconds: 20
+    method: GET
+    params: {}
+    response_format: geojson
+    results_path: features
+    field_mapping:
+      lat: "geometry.coordinates[1]"
+      lon: "geometry.coordinates[0]"
+      timestamp: "properties.time"
+      timestamp_format: epoch_ms
+      confidence: "_static:0.95"
+      source_id: id
+    observable_type: earthquake
+    extra_fields:
+      magnitude: "properties.mag"
+      place: "properties.place"
+      depth_km: "geometry.coordinates[2]"
+      tsunami: "properties.tsunami"
+      alert: "properties.alert"
+
+  - id: usgs_eq_week_sig
+    name: "USGS Significant Past 7 Days"
+    category: seismic
+    enabled: true
+    priority: 1
+    base_url: "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_week.geojson"
+    auth_type: none
+    poll_interval_seconds: 600
+    rate_limit_per_minute: 20
+    timeout_seconds: 20
+    method: GET
+    params: {}
+    response_format: geojson
+    results_path: features
+    field_mapping:
+      lat: "geometry.coordinates[1]"
+      lon: "geometry.coordinates[0]"
+      timestamp: "properties.time"
+      timestamp_format: epoch_ms
+      confidence: "_static:0.99"
+      source_id: id
+    observable_type: earthquake
+    extra_fields:
+      magnitude: "properties.mag"
+      place: "properties.place"
+      depth_km: "geometry.coordinates[2]"
+      tsunami: "properties.tsunami"
+      alert: "properties.alert"
+
+  - id: nasa_eonet_earthquakes
+    name: "NASA EONET Earthquakes"
+    category: seismic
+    enabled: true
+    priority: 2
+    base_url: "https://eonet.gsfc.nasa.gov/api/v3/events"
+    auth_type: none
+    poll_interval_seconds: 900
+    rate_limit_per_minute: 10
+    timeout_seconds: 30
+    method: GET
+    params:
+      category: earthquakes
+      days: "7"
+      status: open
+    response_format: json
+    results_path: events
+    field_mapping:
+      lat: "geometry[0].coordinates[1]"
+      lon: "geometry[0].coordinates[0]"
+      timestamp: "geometry[0].date"
+      timestamp_format: iso8601
+      confidence: "_static:0.9"
+    observable_type: earthquake
+    extra_fields:
+      title: title
+      description: description
+
+  - id: nasa_eonet_drought
+    name: "NASA EONET Drought"
+    category: environmental
+    enabled: true
+    priority: 3
+    base_url: "https://eonet.gsfc.nasa.gov/api/v3/events"
+    auth_type: none
+    poll_interval_seconds: 3600
+    rate_limit_per_minute: 10
+    timeout_seconds: 30
+    method: GET
+    params:
+      category: drought
+      days: "30"
+      status: open
+    response_format: json
+    results_path: events
+    field_mapping:
+      lat: "geometry[0].coordinates[1]"
+      lon: "geometry[0].coordinates[0]"
+      timestamp: "geometry[0].date"
+      timestamp_format: iso8601
+      confidence: "_static:0.85"
+    observable_type: deforestation
+    extra_fields:
+      title: title
+
+  - id: nasa_eonet_landslides
+    name: "NASA EONET Landslides"
+    category: environmental
+    enabled: true
+    priority: 2
+    base_url: "https://eonet.gsfc.nasa.gov/api/v3/events"
+    auth_type: none
+    poll_interval_seconds: 1800
+    rate_limit_per_minute: 10
+    timeout_seconds: 30
+    method: GET
+    params:
+      category: landslides
+      days: "7"
+      status: open
+    response_format: json
+    results_path: events
+    field_mapping:
+      lat: "geometry[0].coordinates[1]"
+      lon: "geometry[0].coordinates[0]"
+      timestamp: "geometry[0].date"
+      timestamp_format: iso8601
+      confidence: "_static:0.85"
+    observable_type: flood_alert
+    extra_fields:
+      title: title
+
+  - id: nasa_eonet_manmade
+    name: "NASA EONET Manmade Events"
+    category: environmental
+    enabled: true
+    priority: 2
+    base_url: "https://eonet.gsfc.nasa.gov/api/v3/events"
+    auth_type: none
+    poll_interval_seconds: 1800
+    rate_limit_per_minute: 10
+    timeout_seconds: 30
+    method: GET
+    params:
+      category: manmade
+      days: "7"
+      status: open
+    response_format: json
+    results_path: events
+    field_mapping:
+      lat: "geometry[0].coordinates[1]"
+      lon: "geometry[0].coordinates[0]"
+      timestamp: "geometry[0].date"
+      timestamp_format: iso8601
+      confidence: "_static:0.8"
     observable_type: generic
     extra_fields:
-      name: "tags.name"
-      power_source: "tags.plant:source"
-      operator: "tags.operator"
+      title: title
+
+  - id: noaa_swpc_enlil
+    name: "NOAA SWPC WSA-Enlil Solar Wind"
+    category: space_weather
+    enabled: true
+    priority: 3
+    base_url: "https://services.swpc.noaa.gov/products/animations/enlil.json"
+    auth_type: none
+    poll_interval_seconds: 3600
+    rate_limit_per_minute: 10
+    timeout_seconds: 15
+    method: GET
+    params: {}
+    response_format: json
+    results_path: ""
+    field_mapping:
+      lat: "_static:0.0"
+      lon: "_static:0.0"
+      timestamp: "time_tag"
+      timestamp_format: iso8601
+      confidence: "_static:0.9"
+    observable_type: space_weather
+    extra_fields:
+      url: url
+
+  - id: noaa_swpc_xray_flare
+    name: "NOAA SWPC X-Ray Flares"
+    category: space_weather
+    enabled: true
+    priority: 2
+    base_url: "https://services.swpc.noaa.gov/json/goes/primary/xray-flares-latest.json"
+    auth_type: none
+    poll_interval_seconds: 1800
+    rate_limit_per_minute: 10
+    timeout_seconds: 15
+    method: GET
+    params: {}
+    response_format: json
+    results_path: ""
+    field_mapping:
+      lat: "_static:0.0"
+      lon: "_static:0.0"
+      timestamp: begin_time
+      timestamp_format: iso8601
+      confidence: "_static:0.95"
+    observable_type: space_weather
+    extra_fields:
+      max_class: max_class
+      max_time: max_time
+      end_time: end_time
+      current_ratio: current_ratio
